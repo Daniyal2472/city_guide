@@ -1,6 +1,75 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'login.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
+  @override
+  _RegisterScreenState createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void registerUser() async {
+    String fullName = fullNameController.text.trim();
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+    String confirmPassword = confirmPasswordController.text.trim();
+
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("All fields are required")),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Passwords do not match")),
+      );
+      return;
+    }
+
+    try {
+      // Create user in Firebase Authentication
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Save additional user data in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'fullName': fullName,
+        'email': email,
+        'uid': userCredential.user!.uid,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Registration successful!")),
+      );
+
+      // Navigate to LoginScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +89,6 @@ class RegisterScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // App Icon or Logo
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.white,
@@ -31,7 +99,6 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Page Title
                   Text(
                     "Create Account",
                     style: TextStyle(
@@ -39,27 +106,11 @@ class RegisterScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       fontFamily: 'Montserrat',
-                      shadows: [
-                        Shadow(
-                          blurRadius: 10.0,
-                          color: Colors.black26,
-                          offset: Offset(2.0, 2.0),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Sign up to get started",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
-                      fontFamily: 'Montserrat',
                     ),
                   ),
                   SizedBox(height: 32),
-                  // Name Field
                   TextField(
+                    controller: fullNameController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -72,8 +123,8 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Email Field
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -86,8 +137,8 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Password Field
                   TextField(
+                    controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -101,8 +152,8 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Confirm Password Field
                   TextField(
+                    controller: confirmPasswordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -116,18 +167,14 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 24),
-                  // Register Button
                   ElevatedButton(
-                    onPressed: () {
-                      // Handle Registration Logic
-                    },
+                    onPressed: registerUser,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFDEAD6F),
                       minimumSize: Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 5,
                     ),
                     child: Text(
                       "Sign Up",
@@ -135,30 +182,26 @@ class RegisterScreen extends StatelessWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        fontFamily: 'Montserrat',
                       ),
                     ),
                   ),
                   SizedBox(height: 16),
-                  // Already Have an Account
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "Already have an account?",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                          fontFamily: 'Montserrat',
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 16),
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigate to Login Page
-                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => LoginScreen()),
+                          );
                         },
                         child: Text(
-                          "Log In",
+                          "Login",
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white,

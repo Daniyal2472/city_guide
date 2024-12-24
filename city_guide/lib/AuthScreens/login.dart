@@ -1,7 +1,48 @@
-import 'package:city_guide/AuthScreens/register.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:city_guide/AuthScreens/register.dart';
+import 'package:city_guide/User/Screens/home_screen.dart'; // Replace with your actual navigation target for registration.
 
 class LoginScreen extends StatelessWidget {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  void loginUser(BuildContext context) async {
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Email and password are required.")),
+      );
+      return;
+    }
+
+    try {
+      // Authenticate user with Firebase
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login successful!")),
+      );
+
+      // Navigate to home or dashboard screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()), // Replace with your actual target screen.
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,6 +102,7 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 32),
                   // Email Field
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -75,6 +117,7 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 16),
                   // Password Field
                   TextField(
+                    controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
                       filled: true,
@@ -90,9 +133,7 @@ class LoginScreen extends StatelessWidget {
                   SizedBox(height: 24),
                   // Login Button
                   ElevatedButton(
-                    onPressed: () {
-                      // Handle Login Logic
-                    },
+                    onPressed: () => loginUser(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFDEAD6F),
                       minimumSize: Size(double.infinity, 50),
@@ -116,6 +157,9 @@ class LoginScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: () {
                       // Navigate to Forgot Password Page
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Forgot Password functionality coming soon!")),
+                      );
                     },
                     child: Text(
                       "Forgot Password?",
