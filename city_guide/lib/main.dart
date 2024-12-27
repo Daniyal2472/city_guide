@@ -1,3 +1,4 @@
+import 'package:city_guide/screens/admin/adminscreen.dart';
 import 'package:city_guide/screens/auth/login.dart';
 import 'package:city_guide/utils/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: primary),
         useMaterial3: true,
       ),
-      home: LoginScreen(),
+      home: AdminPage(),
     );
   }
 }
