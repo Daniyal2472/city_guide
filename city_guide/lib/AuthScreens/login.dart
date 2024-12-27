@@ -9,13 +9,15 @@ class LoginScreen extends StatelessWidget {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  LoginScreen({super.key});
+
   void loginUser(BuildContext context) async {
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Email and password are required.")),
+        const SnackBar(content: Text("Email and password are required.")),
       );
       return;
     }
@@ -28,13 +30,15 @@ class LoginScreen extends StatelessWidget {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login successful!")),
+        const SnackBar(content: Text("Login successful!")),
       );
 
       // Navigate to home or dashboard screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()), // Replace with your actual target screen.
+        MaterialPageRoute(
+            builder: (context) =>
+                const HomePage()), // Replace with your actual target screen.
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +51,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF6995B1), Color(0xFFDEAD6F)],
             begin: Alignment.topCenter,
@@ -63,7 +67,7 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // App Icon or Logo
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.white,
                     child: Icon(
@@ -72,9 +76,9 @@ class LoginScreen extends StatelessWidget {
                       color: Color(0xFF6995B1),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   // App Title
-                  Text(
+                  const Text(
                     "Welcome Back!",
                     style: TextStyle(
                       fontSize: 28,
@@ -90,8 +94,8 @@ class LoginScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     "Log in to continue",
                     style: TextStyle(
                       fontSize: 16,
@@ -99,7 +103,7 @@ class LoginScreen extends StatelessWidget {
                       fontFamily: 'Montserrat',
                     ),
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
                   // Email Field
                   TextField(
                     controller: emailController,
@@ -107,14 +111,15 @@ class LoginScreen extends StatelessWidget {
                       filled: true,
                       fillColor: Colors.white,
                       hintText: "Email",
-                      prefixIcon: Icon(Icons.email, color: Color(0xFF6995B1)),
+                      prefixIcon:
+                          const Icon(Icons.email, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   // Password Field
                   TextField(
                     controller: passwordController,
@@ -123,26 +128,27 @@ class LoginScreen extends StatelessWidget {
                       filled: true,
                       fillColor: Colors.white,
                       hintText: "Password",
-                      prefixIcon: Icon(Icons.lock, color: Color(0xFF6995B1)),
+                      prefixIcon:
+                          const Icon(Icons.lock, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   // Login Button
                   ElevatedButton(
                     onPressed: () => loginUser(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFDEAD6F),
-                      minimumSize: Size(double.infinity, 50),
+                      backgroundColor: const Color(0xFFDEAD6F),
+                      minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 5,
                     ),
-                    child: Text(
+                    child: const Text(
                       "Log In",
                       style: TextStyle(
                         fontSize: 18,
@@ -152,16 +158,18 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   // Forgot Password
                   GestureDetector(
                     onTap: () {
                       // Navigate to Forgot Password Page
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Forgot Password functionality coming soon!")),
+                        const SnackBar(
+                            content: Text(
+                                "Forgot Password functionality coming soon!")),
                       );
                     },
-                    child: Text(
+                    child: const Text(
                       "Forgot Password?",
                       style: TextStyle(
                         fontSize: 14,
@@ -171,12 +179,12 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 32),
                   // Register Navigation
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Don't have an account?",
                         style: TextStyle(
                           fontSize: 14,
@@ -189,10 +197,10 @@ class LoginScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RegisterScreen()),
+                                builder: (context) => const RegisterScreen()),
                           );
                         },
-                        child: Text(
+                        child: const Text(
                           "Sign Up",
                           style: TextStyle(
                             fontSize: 14,
