@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:city_guide/AuthScreens/register.dart';
-import 'package:city_guide/User/Screens/home_screen.dart'; // Replace with your actual navigation target for registration.
+import 'package:city_guide/screens/auth/register.dart';
+import 'package:city_guide/screens/user/home_screen.dart'; // Replace with your actual navigation target for registration.
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();

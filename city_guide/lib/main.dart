@@ -1,6 +1,6 @@
-import 'package:city_guide/AuthScreens/login.dart';
-import 'package:city_guide/AuthScreens/register.dart';
-import 'package:city_guide/Utils/app_colors.dart';
+import 'package:city_guide/screens/auth/login.dart';
+import 'package:city_guide/screens/auth/register.dart';
+import 'package:city_guide/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
