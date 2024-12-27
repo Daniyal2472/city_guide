@@ -1,13 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:city_guide/screens/auth/register.dart';
-import 'package:city_guide/screens/user/home_screen.dart'; // Replace with your actual navigation target for registration.
+import 'package:city_guide/screens/user/home_screen.dart'; // User Home Screen
+import 'package:city_guide/screens/admin/adminscreen.dart'; // Admin Home Screen (create this screen)
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   LoginScreen({super.key});
 
@@ -24,22 +27,44 @@ class LoginScreen extends StatelessWidget {
 
     try {
       // Authenticate user with Firebase
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login successful!")),
-      );
+      // Get the user's role from Firestore
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
 
-      // Navigate to home or dashboard screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                const HomePage()), // Replace with your actual target screen.
-      );
+      if (!userDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User data not found.")),
+        );
+        return;
+      }
+
+      // Get the role from the Firestore document
+      String role = userDoc['role'] ?? 'User';
+
+      // Navigate based on the user's role
+      if (role == 'Admin') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Login successful! Welcome Admin.")),
+        );
+        // Navigate to the Admin home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AdminPage()), // Removed const
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Login successful! Welcome User.")),
+        );
+        // Navigate to the User home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()), // Removed const
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
@@ -112,7 +137,7 @@ class LoginScreen extends StatelessWidget {
                       fillColor: Colors.white,
                       hintText: "Email",
                       prefixIcon:
-                          const Icon(Icons.email, color: Color(0xFF6995B1)),
+                      const Icon(Icons.email, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -129,7 +154,7 @@ class LoginScreen extends StatelessWidget {
                       fillColor: Colors.white,
                       hintText: "Password",
                       prefixIcon:
-                          const Icon(Icons.lock, color: Color(0xFF6995B1)),
+                      const Icon(Icons.lock, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -197,7 +222,7 @@ class LoginScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const RegisterScreen()),
+                                builder: (context) => RegisterScreen()),
                           );
                         },
                         child: const Text(

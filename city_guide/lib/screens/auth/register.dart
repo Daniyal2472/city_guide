@@ -51,11 +51,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: password,
       );
 
-      // Save additional user data in Firestore
+      // Save additional user data in Firestore with 'role' set to 'User' by default
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'fullName': fullName,
         'email': email,
         'uid': userCredential.user!.uid,
+        'role': 'User', // Default role set to 'User'
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
