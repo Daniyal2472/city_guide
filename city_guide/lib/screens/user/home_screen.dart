@@ -22,14 +22,14 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: const SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // City Selection Section
-              const Text(
+              Text(
                 "Select Your City",
                 style: TextStyle(
                   fontSize: 24,
@@ -37,13 +37,13 @@ class HomePage extends StatelessWidget {
                   fontFamily: 'Montserrat',
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               CitySelectionWidget(),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Popular Attractions Section
-              const Text(
+              Text(
                 "Popular Attractions",
                 style: TextStyle(
                   fontSize: 24,
@@ -51,13 +51,13 @@ class HomePage extends StatelessWidget {
                   fontFamily: 'Montserrat',
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               PopularAttractionsWidget(),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Explore More Section
-              const Text(
+              Text(
                 "Explore More",
                 style: TextStyle(
                   fontSize: 24,
@@ -65,7 +65,7 @@ class HomePage extends StatelessWidget {
                   fontFamily: 'Montserrat',
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               ExploreMoreWidget(),
             ],
           ),
