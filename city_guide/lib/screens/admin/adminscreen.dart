@@ -1,7 +1,9 @@
+import 'package:city_guide/screens/admin/ManageCitiesPage.dart';
 import 'package:city_guide/screens/auth/login.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Admin Page
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
 
@@ -70,6 +72,10 @@ class AdminPage extends StatelessWidget {
                     color: Colors.blue,
                     onTap: () {
                       // Navigate to Manage Cities
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) =>  ManageCitiesPage()),
+                      );
                     },
                   ),
                   DashboardCard(
@@ -79,6 +85,10 @@ class AdminPage extends StatelessWidget {
                     color: Colors.green,
                     onTap: () {
                       // Navigate to Manage Attractions
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ManageAttractionsPage()),
+                      );
                     },
                   ),
                   DashboardCard(
@@ -88,6 +98,10 @@ class AdminPage extends StatelessWidget {
                     color: Colors.orange,
                     onTap: () {
                       // Navigate to User Management
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ManageUsersPage()),
+                      );
                     },
                   ),
                   DashboardCard(
@@ -97,11 +111,14 @@ class AdminPage extends StatelessWidget {
                     color: Colors.purple,
                     onTap: () {
                       // Navigate to Manage Reviews
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ManageReviewsPage()),
+                      );
                     },
                   ),
                 ],
               ),
-
               const SizedBox(height: 32),
 
               // Management Sections
@@ -112,6 +129,10 @@ class AdminPage extends StatelessWidget {
                 icon: Icons.location_city,
                 onTap: () {
                   // Navigate to Manage Cities Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) =>   ManageCitiesPage()),
+                  );
                 },
               ),
               AdminActionCard(
@@ -120,6 +141,10 @@ class AdminPage extends StatelessWidget {
                 icon: Icons.place,
                 onTap: () {
                   // Navigate to Manage Attractions Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ManageAttractionsPage()),
+                  );
                 },
               ),
               AdminActionCard(
@@ -128,6 +153,10 @@ class AdminPage extends StatelessWidget {
                 icon: Icons.rate_review,
                 onTap: () {
                   // Navigate to Manage Reviews Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ManageReviewsPage()),
+                  );
                 },
               ),
               AdminActionCard(
@@ -136,9 +165,12 @@ class AdminPage extends StatelessWidget {
                 icon: Icons.event,
                 onTap: () {
                   // Navigate to Event Management Page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ManageEventsPage()),
+                  );
                 },
               ),
-
               const SizedBox(height: 32),
 
               // Notifications Section
@@ -160,7 +192,6 @@ class AdminPage extends StatelessWidget {
 }
 
 // Reusable Widgets
-
 class DashboardCard extends StatelessWidget {
   final String title;
   final int count;
@@ -303,9 +334,59 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Center(
-        child: const Text('Login Page'),
+      body: const Center(
+        child: Text('Login Page'),
       ),
+    );
+  }
+}
+
+
+
+class ManageAttractionsPage extends StatelessWidget {
+  const ManageAttractionsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Manage Attractions')),
+      body: const Center(child: Text('Manage Attractions Page')),
+    );
+  }
+}
+
+class ManageUsersPage extends StatelessWidget {
+  const ManageUsersPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Manage Users')),
+      body: const Center(child: Text('Manage Users Page')),
+    );
+  }
+}
+
+class ManageReviewsPage extends StatelessWidget {
+  const ManageReviewsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Manage Reviews')),
+      body: const Center(child: Text('Manage Reviews Page')),
+    );
+  }
+}
+
+class ManageEventsPage extends StatelessWidget {
+  const ManageEventsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Manage Events')),
+      body: const Center(child: Text('Manage Events Page')),
     );
   }
 }

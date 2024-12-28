@@ -53,7 +53,7 @@ class LoginScreen extends StatelessWidget {
         // Navigate to the Admin home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AdminPage()), // Removed const
+          MaterialPageRoute(builder: (context) => const AdminPage()), // Removed const
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

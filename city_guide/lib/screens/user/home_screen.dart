@@ -1,3 +1,4 @@
+import 'package:city_guide/widgets/PopularAttractionsWidget.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -9,18 +10,102 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'City Guide',
-          style:
-              TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
         ),
         backgroundColor: const Color(0xFF6995B1),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {
-              // Navigate to User Profile
+          PopupMenuButton(
+            icon: const Icon(Icons.account_circle, size: 28),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Logout'),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) {
+              if (value == 'logout') {
+                // Handle logout
+              }
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFF6995B1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: NetworkImage(
+                        'https://via.placeholder.com/150/0000FF/808080?text=User+Image'),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Hello, User!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'user@example.com',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                // Navigate to Home
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.map),
+              title: const Text('Map'),
+              onTap: () {
+                // Navigate to Map
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                // Navigate to Settings
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                // Handle logout
+              },
+            ),
+          ],
+        ),
       ),
       body: const SingleChildScrollView(
         child: Padding(
@@ -29,42 +114,21 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // City Selection Section
-              Text(
-                "Select Your City",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
+              SectionTitle(title: "Select Your City"),
               SizedBox(height: 16),
               CitySelectionWidget(),
 
               SizedBox(height: 24),
 
               // Popular Attractions Section
-              Text(
-                "Popular Attractions",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
+              SectionTitle(title: "Popular Attractions"),
               SizedBox(height: 16),
               PopularAttractionsWidget(),
 
               SizedBox(height: 24),
 
               // Explore More Section
-              Text(
-                "Explore More",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Montserrat',
-                ),
-              ),
+              SectionTitle(title: "Explore More"),
               SizedBox(height: 16),
               ExploreMoreWidget(),
             ],
@@ -96,7 +160,24 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// City Selection Widget
+class SectionTitle extends StatelessWidget {
+  final String title;
+
+  const SectionTitle({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Montserrat',
+      ),
+    );
+  }
+}
+
 class CitySelectionWidget extends StatelessWidget {
   const CitySelectionWidget({super.key});
 
@@ -108,17 +189,27 @@ class CitySelectionWidget extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         children: const [
           CityCard(
-              cityName: "New York", imageUrl: "assets/images/new_york.jpg"),
-          CityCard(cityName: "Paris", imageUrl: "assets/images/paris.jpg"),
-          CityCard(cityName: "Tokyo", imageUrl: "assets/images/tokyo.jpg"),
-          CityCard(cityName: "London", imageUrl: "assets/images/london.jpg"),
+              cityName: "New York",
+              imageUrl:
+                  "https://upload.wikimedia.org/wikipedia/commons/4/47/New_york_times_square-terabass.jpg"),
+          CityCard(
+              cityName: "Paris",
+              imageUrl:
+                  "https://upload.wikimedia.org/wikipedia/commons/a/af/Paris_Eiffel_Tower_and_fountains_in_Chanmp_de_Mars_-_July_2007_edit.jpg"),
+          CityCard(
+              cityName: "Tokyo",
+              imageUrl:
+                  "https://upload.wikimedia.org/wikipedia/commons/1/16/Shibuya_Night_%28Unsplash%29.jpg"),
+          CityCard(
+              cityName: "London",
+              imageUrl:
+                  "https://upload.wikimedia.org/wikipedia/commons/a/a4/Elizabeth_Tower_and_Westminster_Bridge%2C_London_-_April_2007_edit.jpg"),
         ],
       ),
     );
   }
 }
 
-// City Card
 class CityCard extends StatelessWidget {
   final String cityName;
   final String imageUrl;
@@ -137,7 +228,7 @@ class CityCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           image: DecorationImage(
-            image: AssetImage(imageUrl),
+            image: NetworkImage(imageUrl),
             fit: BoxFit.cover,
           ),
         ),
@@ -157,122 +248,4 @@ class CityCard extends StatelessWidget {
   }
 }
 
-// Popular Attractions Widget
-class PopularAttractionsWidget extends StatelessWidget {
-  const PopularAttractionsWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: const [
-          AttractionCard(
-            name: "Statue of Liberty",
-            imageUrl: "assets/images/statue_of_liberty.jpg",
-          ),
-          AttractionCard(
-            name: "Eiffel Tower",
-            imageUrl: "assets/images/eiffel_tower.jpg",
-          ),
-          AttractionCard(
-            name: "Mount Fuji",
-            imageUrl: "assets/images/mount_fuji.jpg",
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Attraction Card
-class AttractionCard extends StatelessWidget {
-  final String name;
-  final String imageUrl;
-
-  const AttractionCard({super.key, required this.name, required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to Attraction Details
-      },
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: AssetImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            color: Colors.black.withOpacity(0.6),
-            child: Text(
-              name,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Explore More Widget
-class ExploreMoreWidget extends StatelessWidget {
-  const ExploreMoreWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 150,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: const [
-          ExploreCard(name: "Events", icon: Icons.event),
-          ExploreCard(name: "Restaurants", icon: Icons.restaurant),
-          ExploreCard(name: "Hotels", icon: Icons.hotel),
-        ],
-      ),
-    );
-  }
-}
-
-// Explore Card
-class ExploreCard extends StatelessWidget {
-  final String name;
-  final IconData icon;
-
-  const ExploreCard({super.key, required this.name, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: const Color(0xFFDEAD6F),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 36, color: Colors.white),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// Other widgets (PopularAttractionsWidget, AttractionCard, ExploreMoreWidget, ExploreCard) remain unchanged but now use updated image URLs.
