@@ -1,20 +1,37 @@
+import 'package:city_guide/screens/auth/login.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminPage extends StatelessWidget {
+  const AdminPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Admin Dashboard',
           style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color(0xFFFFFFFF),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              // Handle Logout
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Handle logout functionality
+              try {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
+                print('Preferences cleared successfully.');
+
+                // Navigate to the login page
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) =>  LoginScreen()),
+                  (route) => false,
+                );
+              } catch (e) {
+                print('Error during logout: $e');
+              }
             },
           ),
         ],
@@ -26,7 +43,7 @@ class AdminPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome Section
-              Text(
+              const Text(
                 "Welcome, Admin!",
                 style: TextStyle(
                   fontSize: 28,
@@ -35,13 +52,12 @@ class AdminPage extends StatelessWidget {
                   color: Color(0xFFDEAD6F),
                 ),
               ),
-              SizedBox(height: 16),
-              Text(
+              const SizedBox(height: 16),
+              const Text(
                 "Manage your platform efficiently using the tools below.",
                 style: TextStyle(fontSize: 16, color: Color(0xFF727272)),
               ),
-
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               // Dashboard Stats
               Row(
@@ -86,10 +102,10 @@ class AdminPage extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               // Management Sections
-              SectionHeader(title: "Management"),
+              const SectionHeader(title: "Management"),
               AdminActionCard(
                 title: "Manage Cities",
                 description: "Add, edit, or delete city data.",
@@ -123,10 +139,10 @@ class AdminPage extends StatelessWidget {
                 },
               ),
 
-              SizedBox(height: 32),
+              const SizedBox(height: 32),
 
               // Notifications Section
-              SectionHeader(title: "Notifications"),
+              const SectionHeader(title: "Notifications"),
               AdminActionCard(
                 title: "Create Notifications",
                 description: "Send notifications to users.",
@@ -153,6 +169,7 @@ class DashboardCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const DashboardCard({
+    super.key,
     required this.title,
     required this.count,
     required this.icon,
@@ -166,7 +183,7 @@ class DashboardCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: MediaQuery.of(context).size.width / 4 - 16,
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.2),
           borderRadius: BorderRadius.circular(12),
@@ -175,7 +192,7 @@ class DashboardCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 36, color: color),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "$count",
               style: TextStyle(
@@ -184,7 +201,7 @@ class DashboardCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               title,
               style: TextStyle(
@@ -203,13 +220,13 @@ class DashboardCard extends StatelessWidget {
 class SectionHeader extends StatelessWidget {
   final String title;
 
-  const SectionHeader({required this.title});
+  const SectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.bold,
         fontFamily: 'Montserrat',
@@ -225,6 +242,7 @@ class AdminActionCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const AdminActionCard({
+    super.key,
     required this.title,
     required this.description,
     required this.icon,
@@ -236,42 +254,57 @@ class AdminActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8),
-        padding: EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Color(0xFFF5F5F5),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.3),
               blurRadius: 6,
-              offset: Offset(0, 3),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
-            Icon(icon, size: 36, color: Color(0xFF6995B1)),
-            SizedBox(width: 16),
+            Icon(icon, size: 36, color: const Color(0xFF6995B1)),
+            const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   description,
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Placeholder LoginPage
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Login')),
+      body: Center(
+        child: const Text('Login Page'),
       ),
     );
   }

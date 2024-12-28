@@ -62,7 +62,7 @@ class LoginScreen extends StatelessWidget {
         // Navigate to the User home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()), // Removed const
+          MaterialPageRoute(builder: (context) => const HomePage()), // Removed const
         );
       }
     } catch (e) {
@@ -222,7 +222,7 @@ class LoginScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RegisterScreen()),
+                                builder: (context) => const RegisterScreen()),
                           );
                         },
                         child: const Text(
