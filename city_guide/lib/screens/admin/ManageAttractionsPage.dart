@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ManageAttractionsPage extends StatefulWidget {
@@ -8,19 +9,11 @@ class ManageAttractionsPage extends StatefulWidget {
 }
 
 class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
-  // Static list of attractions
-  final List<Map<String, String>> attractions = [
-    {
-      "name": "Eiffel Tower",
-      "imageUrl": "https://example.com/eiffel.jpg",
-      "description": "A wrought-iron lattice tower in Paris."
-    },
-    {
-      "name": "Statue of Liberty",
-      "imageUrl": "https://example.com/statue.jpg",
-      "description": "A colossal neoclassical sculpture on Liberty Island."
-    },
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Change to dynamic to support Firestore data structure
+  List<Map<String, dynamic>> attractions = [];
+  List<Map<String, dynamic>> cities = [];
 
   // Controllers for form inputs
   final _formKey = GlobalKey<FormState>();
@@ -28,52 +21,116 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
   final TextEditingController _imageUrlController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
-  // Function to delete an attraction
-  void deleteAttraction(int index) {
+  String? _selectedCityId;
+
+  // Fetch cities from Firestore
+  Future<void> _getCities() async {
+    final QuerySnapshot citySnapshot =
+    await _firestore.collection('cities').get();
     setState(() {
-      attractions.removeAt(index);
+      cities = citySnapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'name': doc['name'],
+        };
+      }).toList();
     });
+  }
+
+  // Fetch attractions from Firestore
+  Future<void> _getAttractions() async {
+    final QuerySnapshot attractionSnapshot =
+    await _firestore.collection('attractions').get();
+    setState(() {
+      attractions = attractionSnapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'name': doc['name'],
+          'imageUrl': doc['imageUrl'],
+          'description': doc['description'],
+          'cityId': doc['cityId'],
+        };
+      }).toList();
+    });
+  }
+
+  // Function to delete an attraction
+  void deleteAttraction(String attractionId) async {
+    await _firestore.collection('attractions').doc(attractionId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Attraction deleted successfully")),
     );
+    _getAttractions(); // Refresh the attractions list
   }
 
   // Function to add a new attraction
-  void addAttraction() {
+  void addAttraction() async {
     if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        attractions.add({
-          "name": _nameController.text,
-          "imageUrl": _imageUrlController.text,
-          "description": _descriptionController.text,
-        });
+      await _firestore.collection('attractions').add({
+        'name': _nameController.text,
+        'imageUrl': _imageUrlController.text,
+        'description': _descriptionController.text,
+        'cityId': _selectedCityId, // Associate attraction with the selected city
       });
+
       _nameController.clear();
       _imageUrlController.clear();
       _descriptionController.clear();
+      setState(() {
+        _selectedCityId = null; // Reset city dropdown
+      });
+
       Navigator.pop(context); // Close the dialog
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Attraction added successfully")),
       );
+      _getAttractions(); // Refresh the attractions list
+    }
+  }
+
+  // Function to update an existing attraction
+  void updateAttraction(String attractionId) async {
+    if (_formKey.currentState?.validate() ?? false) {
+      await _firestore.collection('attractions').doc(attractionId).update({
+        'name': _nameController.text,
+        'imageUrl': _imageUrlController.text,
+        'description': _descriptionController.text,
+        'cityId': _selectedCityId, // Update associated city
+      });
+
+      _nameController.clear();
+      _imageUrlController.clear();
+      _descriptionController.clear();
+      setState(() {
+        _selectedCityId = null; // Reset city dropdown
+      });
+
+      Navigator.pop(context); // Close the dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Attraction updated successfully")),
+      );
+      _getAttractions(); // Refresh the attractions list
     }
   }
 
   // Function to show the add/edit attraction form
-  void showAttractionForm({String? name, String? imageUrl, String? description, int? index}) {
-    if (index != null) {
+  void showAttractionForm({String? name, String? imageUrl, String? description, String? cityId, String? attractionId}) {
+    if (attractionId != null) {
       _nameController.text = name!;
       _imageUrlController.text = imageUrl!;
       _descriptionController.text = description!;
+      _selectedCityId = cityId;
     } else {
       _nameController.clear();
       _imageUrlController.clear();
       _descriptionController.clear();
+      _selectedCityId = null;
     }
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(index != null ? 'Edit Attraction' : 'Add New Attraction'),
+        title: Text(attractionId != null ? 'Edit Attraction' : 'Add New Attraction'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -123,6 +180,31 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
                   },
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _selectedCityId,
+                  decoration: const InputDecoration(
+                    labelText: 'Select City',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedCityId = newValue;
+                    });
+                  },
+                  items: cities.map((city) {
+                    return DropdownMenuItem<String>(
+                      value: city['id'],
+                      child: Text(city['name']!),
+                    );
+                  }).toList(),
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Please select a city';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
                 if (_imageUrlController.text.isNotEmpty)
                   Image.network(
                     _imageUrlController.text,
@@ -143,18 +225,8 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              if (index != null) {
-                setState(() {
-                  attractions[index] = {
-                    "name": _nameController.text,
-                    "imageUrl": _imageUrlController.text,
-                    "description": _descriptionController.text,
-                  };
-                });
-                Navigator.pop(context); // Close the dialog
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Attraction updated successfully")),
-                );
+              if (attractionId != null) {
+                updateAttraction(attractionId);
               } else {
                 addAttraction();
               }
@@ -162,11 +234,18 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6995B1), // Button color
             ),
-            child: Text(index != null ? 'Update Attraction' : 'Add Attraction'),
+            child: Text(attractionId != null ? 'Update Attraction' : 'Add Attraction'),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getCities(); // Fetch cities when the page loads
+    _getAttractions(); // Fetch attractions when the page loads
   }
 
   @override
@@ -215,13 +294,14 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
                                 name: attractions[index]["name"],
                                 imageUrl: attractions[index]["imageUrl"],
                                 description: attractions[index]["description"],
-                                index: index,
+                                cityId: attractions[index]["cityId"],
+                                attractionId: attractions[index]["id"],
                               );
                             },
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteAttraction(index),
+                            onPressed: () => deleteAttraction(attractions[index]["id"]!),
                           ),
                         ],
                       ),
@@ -250,3 +330,4 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
     );
   }
 }
+
