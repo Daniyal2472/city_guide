@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // Redirect user based on login status
-      home: isLoggedIn ? const AdminPage() : ManageCitiesPage(),
+      home: isLoggedIn ? const AdminPage() : const AdminPage(),
     );
   }
 }
