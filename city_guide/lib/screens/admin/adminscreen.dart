@@ -3,6 +3,8 @@ import 'package:city_guide/screens/admin/ManageCitiesPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../auth/login.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -44,7 +46,7 @@ class AdminPage extends StatelessWidget {
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
                   (route) => false,
                 );
               } catch (e) {
@@ -412,19 +414,3 @@ class EventManagementPage extends StatelessWidget {
   }
 }
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Login"),
-        backgroundColor: const Color(0xFF6995B1),
-      ),
-      body: const Center(
-        child: Text("Login Screen Placeholder"),
-      ),
-    );
-  }
-}

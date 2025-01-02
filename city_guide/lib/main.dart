@@ -2,6 +2,7 @@ import 'package:city_guide/screens/admin/ManageAttractionsPage.dart';
 import 'package:city_guide/screens/admin/ManageCitiesPage.dart';  // Import the correct ManageCitiesPage
 import 'package:city_guide/screens/admin/adminscreen.dart';
 import 'package:city_guide/screens/auth/login.dart' as auth;
+import 'package:city_guide/screens/user/home_screen.dart';
 import 'package:city_guide/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
