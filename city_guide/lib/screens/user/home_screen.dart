@@ -146,7 +146,7 @@ class HomePage extends StatelessWidget {
           },
         ),
       ),
-      body:  SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
@@ -271,6 +271,91 @@ class CityCard extends StatelessWidget {
           color: Colors.black.withOpacity(0.6),
           child: Text(
             cityName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PopularAttractionsWidget extends StatelessWidget {
+  const PopularAttractionsWidget({super.key});
+
+  Future<List<Map<String, dynamic>>> fetchAttractions() async {
+    final QuerySnapshot snapshot =
+    await FirebaseFirestore.instance.collection('attractions').get();
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+        'imageUrl': doc['imageUrl'],
+      };
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: fetchAttractions(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+        final attractions = snapshot.data ?? [];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: attractions.map((attraction) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: GestureDetector(
+                onTap: () {
+                  // Navigate to attraction details or perform an action
+                },
+                child: AttractionCard(
+                  attractionName: attraction['name'],
+                  imageUrl: attraction['imageUrl'],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class AttractionCard extends StatelessWidget {
+  final String attractionName;
+  final String imageUrl;
+
+  const AttractionCard({super.key, required this.attractionName, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 200, // Adjust the height according to your design
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          color: Colors.black.withOpacity(0.6),
+          child: Text(
+            attractionName,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
