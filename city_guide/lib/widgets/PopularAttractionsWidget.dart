@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +93,7 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-}
+
 
 // City Selection Widget
 class CitySelectionWidget extends StatelessWidget {

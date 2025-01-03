@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../admin/adminscreen.dart';
+import '../../widgets/PopularAttractionsWidget.dart';
 import '../auth/login.dart';
+import 'CityDetailScreen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -29,8 +30,6 @@ class HomePage extends StatelessWidget {
       'email': 'No email provided',
     };
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +61,7 @@ class HomePage extends StatelessWidget {
             ],
             onSelected: (value) {
               if (value == 'logout') {
-                // Handle logout
+                logout(context);
               }
             },
           ),
@@ -119,7 +118,7 @@ class HomePage extends StatelessWidget {
                   leading: const Icon(Icons.home),
                   title: const Text('Home'),
                   onTap: () {
-                    Navigator.of(context).pushReplacementNamed('/home'); // Navigate to Home
+                    Navigator.of(context).pushReplacementNamed('/home');
                   },
                 ),
                 ListTile(
@@ -140,31 +139,25 @@ class HomePage extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
                   title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                  onTap: () => logout(context), // Call the logout function
+                  onTap: () => logout(context),
                 ),
               ],
             );
           },
         ),
       ),
-
-
-      body: SingleChildScrollView(
+      body:  SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // City Selection Section
-              const SectionTitle(title: "Select Your City"),
-              const SizedBox(height: 16),
+              SectionTitle(title: "Select Your City"),
+              SizedBox(height: 16),
               CitySelectionWidget(),
-
-              const SizedBox(height: 24),
-
-              // Popular Attractions Section
-              const SectionTitle(title: "Popular Attractions"),
-              const SizedBox(height: 16),
+              SizedBox(height: 24),
+              SectionTitle(title: "Popular Attractions"),
+              SizedBox(height: 16),
               PopularAttractionsWidget(),
             ],
           ),
@@ -190,24 +183,6 @@ class HomePage extends StatelessWidget {
         onTap: (index) {
           // Handle navigation
         },
-      ),
-    );
-  }
-}
-
-class SectionTitle extends StatelessWidget {
-  final String title;
-
-  const SectionTitle({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'Montserrat',
       ),
     );
   }
@@ -241,66 +216,32 @@ class CitySelectionWidget extends StatelessWidget {
         }
         final cities = snapshot.data ?? [];
         return SizedBox(
-          height: 100,
-          child: ListView.builder(
+          height: 120,
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            itemCount: cities.length,
-            itemBuilder: (context, index) {
-              return CityCard(
-                cityName: cities[index]['name'],
-                imageUrl: cities[index]['imageUrl'],
-              );
-            },
+            child: Row(
+              children: cities.map((city) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navigate to city details or perform an action
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CityDetailPage(cityName: city['name']),
+                        ),
+                      );
+                    },
+                    child: CityCard(
+                      cityName: city['name'],
+                      imageUrl: city['imageUrl'],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-        );
-      },
-    );
-  }
-}
-
-class PopularAttractionsWidget extends StatelessWidget {
-  const PopularAttractionsWidget({super.key});
-
-  Future<List<Map<String, dynamic>>> fetchAttractions() async {
-    final QuerySnapshot snapshot =
-    await FirebaseFirestore.instance.collection('attractions').get();
-    return snapshot.docs.map((doc) {
-      return {
-        'id': doc.id,
-        'name': doc['name'],
-        'imageUrl': doc['imageUrl'],
-      };
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: fetchAttractions(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        }
-        final attractions = snapshot.data ?? [];
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.8,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: attractions.length,
-          itemBuilder: (context, index) {
-            return AttractionCard(
-              attractionName: attractions[index]['name'],
-              imageUrl: attractions[index]['imageUrl'],
-            );
-          },
         );
       },
     );
@@ -315,28 +256,25 @@ class CityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to City Details
-      },
-      child: Container(
-        width: 120,
-        margin: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
+    return Container(
+      width: 140,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
         ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            color: Colors.black.withOpacity(0.6),
-            child: Text(
-              cityName,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          color: Colors.black.withOpacity(0.6),
+          child: Text(
+            cityName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -345,48 +283,31 @@ class CityCard extends StatelessWidget {
   }
 }
 
-class AttractionCard extends StatelessWidget {
-  final String attractionName;
-  final String imageUrl;
+// Placeholder for CityDetailPage
+class CityDetailPage extends StatelessWidget {
+  final String cityName;
 
-  const AttractionCard(
-      {super.key, required this.attractionName, required this.imageUrl});
+  const CityDetailPage({super.key, required this.cityName});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to Attraction Details
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            color: Colors.black.withOpacity(0.6),
-            child: Text(
-              attractionName,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(cityName),
+      ),
+      body: Center(
+        child: Text("Details for $cityName"),
       ),
     );
   }
 }
-//logout
+
+// Logout function
 void logout(BuildContext context) async {
   try {
-    await FirebaseAuth.instance.signOut(); // Sign out the user
+    await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LoginScreen()), // Navigate to LoginScreen
+      MaterialPageRoute(builder: (context) => LoginScreen()),
     );
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(

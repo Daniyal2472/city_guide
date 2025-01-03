@@ -39,7 +39,7 @@ class _ManageCitiesPageState extends State<ManageCitiesPage> {
       // Refresh the list after deletion
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("City deleted")),
+      const SnackBar(content: Text("City deleted")),
     );
   }
 

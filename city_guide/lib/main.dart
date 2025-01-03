@@ -1,9 +1,9 @@
-import 'package:city_guide/screens/admin/ManageAttractionsPage.dart';
-import 'package:city_guide/screens/admin/ManageCitiesPage.dart';  // Import the correct ManageCitiesPage
+// Import the correct ManageCitiesPage
 import 'package:city_guide/screens/admin/adminscreen.dart';
 import 'package:city_guide/screens/auth/login.dart' as auth;
 import 'package:city_guide/screens/user/home_screen.dart';
 import 'package:city_guide/utils/app_colors.dart';
+import 'package:city_guide/widgets/PopularAttractionsWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // Redirect user based on login status
-      home: isLoggedIn ? const AdminPage() : auth.LoginScreen(), // Corrected the reference here
+      home: isLoggedIn ? const AdminPage() : HomePage(), // Corrected the reference here
     );
   }
 }

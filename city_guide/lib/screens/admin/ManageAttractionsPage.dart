@@ -58,7 +58,7 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
   void deleteAttraction(String attractionId) async {
     await _firestore.collection('attractions').doc(attractionId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Attraction deleted successfully")),
+      const SnackBar(content: Text("Attraction deleted successfully")),
     );
     _getAttractions(); // Refresh the attractions list
   }

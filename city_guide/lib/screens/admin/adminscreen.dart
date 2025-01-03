@@ -181,7 +181,7 @@ class AdminPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ManageCitiesPage(),
+                      builder: (context) => const ManageCitiesPage(),
                     ),
                   );
                 },
@@ -194,7 +194,7 @@ class AdminPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ManageAttractionsPage(),
+                      builder: (context) => const ManageAttractionsPage(),
                     ),
                   );
                 },
