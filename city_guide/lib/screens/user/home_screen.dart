@@ -196,7 +196,7 @@ class CitySelectionWidget extends StatelessWidget {
     await FirebaseFirestore.instance.collection('cities').get();
     return snapshot.docs.map((doc) {
       return {
-        'id': doc.id,
+        'id': doc.id, // Use the document ID as the cityId
         'name': doc['name'],
         'imageUrl': doc['imageUrl'],
       };
@@ -225,11 +225,14 @@ class CitySelectionWidget extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 16.0),
                   child: GestureDetector(
                     onTap: () {
-                      // Navigate to city details or perform an action
+                      // Pass the correct cityId and cityName to CityDetailScreen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => CityDetailPage(cityName: city['name']),
+                          builder: (context) => CityDetailScreen(
+                            cityName: city['name'],
+                            cityId: city['id'], // Pass the actual cityId here
+                          ),
                         ),
                       );
                     },
@@ -247,6 +250,7 @@ class CitySelectionWidget extends StatelessWidget {
     );
   }
 }
+
 
 class CityCard extends StatelessWidget {
   final String cityName;

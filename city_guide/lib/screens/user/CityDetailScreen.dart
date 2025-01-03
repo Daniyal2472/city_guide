@@ -5,23 +5,21 @@ class CityDetailScreen extends StatelessWidget {
   final String cityId;
   final String cityName;
 
-  const CityDetailScreen({super.key, required this.cityId, required this.cityName});
+  const CityDetailScreen({
+    super.key,
+    required this.cityId,
+    required this.cityName,
+  });
 
+  // Fetch city details
   Future<Map<String, dynamic>> fetchCityDetails() async {
     final DocumentSnapshot cityDoc =
     await FirebaseFirestore.instance.collection('cities').doc(cityId).get();
-    return cityDoc.data() as Map<String, dynamic>;
+    return cityDoc.data() as Map<String, dynamic>? ?? {};
   }
 
-  Future<List<Map<String, dynamic>>> fetchCityEvents() async {
-    final QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('cityId', isEqualTo: cityId)
-        .get();
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-  }
-
-  Future<List<Map<String, dynamic>>> fetchCityAttractions() async {
+  // Fetch attractions for the city
+  Future<List<Map<String, dynamic>>> fetchAttractions() async {
     final QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('attractions')
         .where('cityId', isEqualTo: cityId)
@@ -60,20 +58,22 @@ class CityDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // City Image and Description
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      image: DecorationImage(
-                        image: NetworkImage(cityDetails['imageUrl']),
-                        fit: BoxFit.cover,
+                  // City Image
+                  if (cityDetails['imageUrl'] != null)
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          image: NetworkImage(cityDetails['imageUrl']),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 16),
+                  // City Description
                   Text(
-                    cityDetails['description'] ?? 'No description available',
+                    cityDetails['description'] ?? 'No description available.',
                     style: const TextStyle(
                       fontSize: 16,
                       fontFamily: 'Montserrat',
@@ -82,43 +82,10 @@ class CityDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Events Section
-                  const SectionTitle(title: "Events"),
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: fetchCityEvents(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text("Error: ${snapshot.error}"));
-                      }
-                      final events = snapshot.data ?? [];
-                      if (events.isEmpty) {
-                        return const Text("No events found.");
-                      }
-                      return Column(
-                        children: events.map((event) {
-                          return ListTile(
-                            leading: Image.network(
-                              event['imageUrl'],
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                            title: Text(event['name']),
-                            subtitle: Text(event['date']),
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
                   // Attractions Section
-                  const SectionTitle(title: "Attractions"),
+                  const SectionTitle(title: "Popular Attractions"),
                   FutureBuilder<List<Map<String, dynamic>>>(
-                    future: fetchCityAttractions(),
+                    future: fetchAttractions(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -126,10 +93,12 @@ class CityDetailScreen extends StatelessWidget {
                       if (snapshot.hasError) {
                         return Center(child: Text("Error: ${snapshot.error}"));
                       }
+
                       final attractions = snapshot.data ?? [];
                       if (attractions.isEmpty) {
-                        return const Text("No attractions found.");
+                        return const Center(child: Text("No attractions found."));
                       }
+
                       return GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -173,7 +142,7 @@ class AttractionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to attraction details
+        // Navigate to attraction details (if needed)
       },
       child: Container(
         decoration: BoxDecoration(
@@ -186,6 +155,7 @@ class AttractionCard extends StatelessWidget {
         child: Align(
           alignment: Alignment.bottomCenter,
           child: Container(
+            padding: const EdgeInsets.all(8.0),
             color: Colors.black.withOpacity(0.6),
             child: Text(
               attractionName,
