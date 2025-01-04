@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       // Redirect user based on login status
-      home: isLoggedIn ? const AdminPage() : AdminPage(), // Corrected the reference here
+      home: isLoggedIn ? const AdminPage() : auth.LoginScreen(), // Corrected the reference here
     );
   }
 }

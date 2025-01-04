@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/PopularAttractionsWidget.dart';
 import '../auth/login.dart';
 import 'CityDetailScreen.dart';
+import 'AttractionDetailScreen.dart'; // Import the AttractionDetailScreen
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -321,7 +322,16 @@ class PopularAttractionsWidget extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: GestureDetector(
                 onTap: () {
-                  // Navigate to attraction details or perform an action
+                  // Navigate to the Attraction Detail Screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AttractionDetailScreen(
+                        attractionId: attraction['id'], // Pass the attractionId here
+                        attractionName: attraction['name'],
+                      ),
+                    ),
+                  );
                 },
                 child: AttractionCard(
                   attractionName: attraction['name'],
@@ -372,20 +382,19 @@ class AttractionCard extends StatelessWidget {
   }
 }
 
-// Placeholder for CityDetailPage
-class CityDetailPage extends StatelessWidget {
-  final String cityName;
+class SectionTitle extends StatelessWidget {
+  final String title;
 
-  const CityDetailPage({super.key, required this.cityName});
+  const SectionTitle({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(cityName),
-      ),
-      body: Center(
-        child: Text("Details for $cityName"),
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Montserrat',
       ),
     );
   }
