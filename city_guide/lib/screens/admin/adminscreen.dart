@@ -1,5 +1,6 @@
 import 'package:city_guide/screens/admin/ManageAttractionsPage.dart';
 import 'package:city_guide/screens/admin/ManageCitiesPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +28,30 @@ class MyApp extends StatelessWidget {
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
 
+  // Move fetchCounts here
+  Future<Map<String, int>> fetchCounts() async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Fetch count of cities
+    final int citiesCount = await firestore.collection('cities').get().then((snapshot) => snapshot.size);
+
+    // Fetch count of attractions (including hotels and restaurants)
+    final int attractionsCount = await Future.wait([
+      firestore.collection('attractions').get().then((snapshot) => snapshot.size),
+      firestore.collection('hotels').get().then((snapshot) => snapshot.size),
+      firestore.collection('restaurants').get().then((snapshot) => snapshot.size),
+    ]).then((counts) => counts.reduce((a, b) => a + b));
+
+    // Fetch count of users
+    final int usersCount = await firestore.collection('users').get().then((snapshot) => snapshot.size);
+
+    return {
+      'cities': citiesCount,
+      'attractions': attractionsCount,
+      'users': usersCount,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,7 +74,7 @@ class AdminPage extends StatelessWidget {
                 await prefs.clear();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => LoginScreen()),
-                  (route) => false,
+                      (route) => false,
                 );
               } catch (e) {
                 print('Error during logout: $e');
@@ -98,72 +123,68 @@ class AdminPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  DashboardCard(
-                    title: "Cities",
-                    count: 10,
-                    icon: Icons.location_city,
-                    color: Colors.blue,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ManageCitiesPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  DashboardCard(
-                    title: "Attractions",
-                    count: 45,
-                    icon: Icons.place,
-                    color: Colors.green,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ManageAttractionsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  DashboardCard(
-                    title: "Users",
-                    count: 1200,
-                    icon: Icons.people,
-                    color: Colors.orange,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ManageUsersPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  DashboardCard(
-                    title: "Reviews",
-                    count: 150,
-                    icon: Icons.rate_review,
-                    color: Colors.purple,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ManageReviewsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+              FutureBuilder<Map<String, int>>(
+                future: fetchCounts(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return const Center(child: Text("Error fetching data"));
+                  }
+
+                  final counts = snapshot.data ?? {'cities': 0, 'attractions': 0, 'users': 0};
+
+                  return Wrap(
+                    spacing: 20.0,
+                    runSpacing: 20.0,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      DashboardCard(
+                        title: "Cities",
+                        count: counts['cities']!,
+                        icon: Icons.location_city,
+                        color: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ManageCitiesPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      DashboardCard(
+                        title: "Attractions",
+                        count: counts['attractions']!,
+                        icon: Icons.place,
+                        color: Colors.green,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ManageAttractionsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                      DashboardCard(
+                        title: "Users",
+                        count: counts['users']!,
+                        icon: Icons.people,
+                        color: Colors.orange,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ManageUsersPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 30),
               const Text(
@@ -175,85 +196,91 @@ class AdminPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              AdminActionCard(
-                title: "Manage Cities",
-                description: "Add, edit, or delete city data.",
-                icon: Icons.location_city,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageCitiesPage(),
-                    ),
-                  );
-                },
+              Wrap(
+                spacing: 20.0,
+                runSpacing: 20.0,
+                alignment: WrapAlignment.center,
+                children: [
+                  AdminActionCard(
+                    title: "Manage Cities",
+                    description: "Add, edit, or delete city data.",
+                    icon: Icons.location_city,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageCitiesPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  AdminActionCard(
+                    title: "Manage Attractions",
+                    description: "Add, edit, or delete attractions.",
+                    icon: Icons.place,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageAttractionsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  AdminActionCard(
+                    title: "Manage Hotels",
+                    description: "Add, edit, or delete Hotels.",
+                    icon: Icons.hotel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageHotelsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  AdminActionCard(
+                    title: "Manage Resturant",
+                    description: "Add, edit, or delete Resturant.",
+                    icon: Icons.restaurant,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageRestaurantsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  AdminActionCard(
+                    title: "Manage Events",
+                    description: "Add, edit, or delete city-specific events.",
+                    icon: Icons.event,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EventManagementPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  AdminActionCard(
+                    title: "Manage Reviews",
+                    description: "Moderate user reviews.",
+                    icon: Icons.rate_review,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ManageReviewsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-              AdminActionCard(
-                title: "Manage Attractions",
-                description: "Add, edit, or delete attractions.",
-                icon: Icons.place,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageAttractionsPage(),
-                    ),
-                  );
-                },
-              ),
-              AdminActionCard(
-                title: "Manage Hotels",
-                description: "Add, edit, or delete Hotels.",
-                icon: Icons.hotel,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageHotelsPage(),
-                    ),
-                  );
-                },
-              ),
-              AdminActionCard(
-                title: "Manage Resturant",
-                description: "Add, edit, or delete Resturant.",
-                icon: Icons.restaurant,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageRestaurantsPage(),
-                    ),
-                  );
-                },
-              ),
-              AdminActionCard(
-                title: "Manage Events",
-                description: "Add, edit, or delete city-specific events.",
-                icon: Icons.event,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EventManagementPage(),
-                    ),
-                  );
-                },
-              ),
-              AdminActionCard(
-                title: "Manage Reviews",
-                description: "Moderate user reviews.",
-                icon: Icons.rate_review,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ManageReviewsPage(),
-                    ),
-                  );
-                },
-              ),
-
             ],
           ),
         ),
@@ -283,7 +310,7 @@ class DashboardCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.4,
+        width: MediaQuery.of(context).size.width * 0.4, // Use dynamic width
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -442,4 +469,3 @@ class EventManagementPage extends StatelessWidget {
     );
   }
 }
-

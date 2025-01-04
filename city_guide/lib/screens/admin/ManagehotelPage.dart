@@ -11,6 +11,17 @@ class ManageHotelsPage extends StatefulWidget {
 class _ManageHotelsPageState extends State<ManageHotelsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<List<Map<String, dynamic>>> _getCitiesForDropdown() async {
+    final QuerySnapshot citySnapshot = await _firestore.collection('cities').get();
+    return citySnapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+      };
+    }).toList();
+  }
+
+
   List<Map<String, dynamic>> hotels = [];
   List<Map<String, dynamic>> cities = [];
 
@@ -21,9 +32,16 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
 
   String? _selectedCityId;
 
+  @override
+  void initState() {
+    super.initState();
+    _getCities();
+    _getHotels();
+  }
+
+  // Fetch cities from Firestore
   Future<void> _getCities() async {
-    final QuerySnapshot citySnapshot =
-    await _firestore.collection('cities').get();
+    final QuerySnapshot citySnapshot = await _firestore.collection('cities').get();
     setState(() {
       cities = citySnapshot.docs.map((doc) {
         return {
@@ -34,9 +52,9 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     });
   }
 
+  // Fetch hotels from Firestore
   Future<void> _getHotels() async {
-    final QuerySnapshot hotelSnapshot =
-    await _firestore.collection('hotels').get();
+    final QuerySnapshot hotelSnapshot = await _firestore.collection('hotels').get();
     setState(() {
       hotels = hotelSnapshot.docs.map((doc) {
         return {
@@ -50,14 +68,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     });
   }
 
-  void deleteHotel(String hotelId) async {
-    await _firestore.collection('hotels').doc(hotelId).delete();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Hotel deleted successfully")),
-    );
-    _getHotels();
-  }
-
+  // Add a new hotel
   void addHotel() async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('hotels').add({
@@ -67,13 +78,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
         'cityId': _selectedCityId,
       });
 
-      _nameController.clear();
-      _imageUrlController.clear();
-      _descriptionController.clear();
-      setState(() {
-        _selectedCityId = null;
-      });
-
+      _clearForm();
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Hotel added successfully")),
@@ -82,6 +87,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     }
   }
 
+  // Update an existing hotel
   void updateHotel(String hotelId) async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('hotels').doc(hotelId).update({
@@ -91,13 +97,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
         'cityId': _selectedCityId,
       });
 
-      _nameController.clear();
-      _imageUrlController.clear();
-      _descriptionController.clear();
-      setState(() {
-        _selectedCityId = null;
-      });
-
+      _clearForm();
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Hotel updated successfully")),
@@ -106,118 +106,147 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     }
   }
 
-  void showHotelForm(
-      {String? name,
-        String? imageUrl,
-        String? description,
-        String? cityId,
-        String? hotelId}) {
+  // Delete a hotel
+  void deleteHotel(String hotelId) async {
+    await _firestore.collection('hotels').doc(hotelId).delete();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Hotel deleted successfully")),
+    );
+    _getHotels();
+  }
+
+  // Clear form fields
+  void _clearForm() {
+    _nameController.clear();
+    _imageUrlController.clear();
+    _descriptionController.clear();
+    setState(() {
+      _selectedCityId = null;
+    });
+  }
+
+  // Show the add/edit hotel form
+  void showHotelForm({
+    String? name,
+    String? imageUrl,
+    String? description,
+    String? cityId,
+    String? hotelId,
+  }) {
     if (hotelId != null) {
       _nameController.text = name!;
       _imageUrlController.text = imageUrl!;
       _descriptionController.text = description!;
       _selectedCityId = cityId;
     } else {
-      _nameController.clear();
-      _imageUrlController.clear();
-      _descriptionController.clear();
-      _selectedCityId = null;
+      _clearForm();
     }
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(hotelId != null ? 'Edit Hotel' : 'Add New Hotel'),
-        content: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Hotel Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
+        content: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _getCitiesForDropdown(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}");
+            }
+
+            final cityList = snapshot.data ?? [];
+            return Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Hotel Name',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _imageUrlController,
+                      decoration: const InputDecoration(
+                        labelText: 'Image URL',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter an image URL';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a description';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedCityId,
+                      decoration: const InputDecoration(
+                        labelText: 'Select City',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCityId = newValue;
+                        });
+                      },
+                      items: cityList.map((city) {
+                        return DropdownMenuItem<String>(
+                          value: city['id'],
+                          child: Text(city['name']),
+                        );
+                      }).toList(),
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a city';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    if (_imageUrlController.text.isNotEmpty)
+                      Image.network(
+                        _imageUrlController.text,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _imageUrlController,
-                  decoration: const InputDecoration(
-                    labelText: 'Image URL',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter an image URL';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedCityId,
-                  decoration: const InputDecoration(
-                    labelText: 'Select City',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedCityId = newValue;
-                    });
-                  },
-                  items: cities.map((city) {
-                    return DropdownMenuItem<String>(
-                      value: city['id'],
-                      child: Text(city['name']!),
-                    );
-                  }).toList(),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Please select a city';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                if (_imageUrlController.text.isNotEmpty)
-                  Image.network(
-                    _imageUrlController.text,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -228,21 +257,11 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
                 addHotel();
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6995B1),
-            ),
             child: Text(hotelId != null ? 'Update Hotel' : 'Add Hotel'),
           ),
         ],
       ),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _getCities();
-    _getHotels();
   }
 
   @override
@@ -253,9 +272,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
         backgroundColor: const Color(0xFF6995B1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: Padding(
@@ -270,12 +287,12 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
                     child: ListTile(
                       title: Text(
-                        hotels[index]["name"]!,
+                        hotels[index]["name"],
                         style: const TextStyle(fontSize: 18),
                       ),
-                      subtitle: Text(hotels[index]["description"]!),
+                      subtitle: Text(hotels[index]["description"]),
                       leading: Image.network(
-                        hotels[index]["imageUrl"]!,
+                        hotels[index]["imageUrl"],
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,
@@ -297,8 +314,7 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () =>
-                                deleteHotel(hotels[index]["id"]!),
+                            onPressed: () => deleteHotel(hotels[index]["id"]),
                           ),
                         ],
                       ),
@@ -309,17 +325,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
             ),
             ElevatedButton(
               onPressed: () => showHotelForm(),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-                backgroundColor: const Color(0xFF6995B1),
-                padding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
               child: const Text("Add Hotel"),
             ),
           ],
