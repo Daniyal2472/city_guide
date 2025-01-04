@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/login.dart';
+import 'ManageResturantPage.dart';
+import 'ManagehotelPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -200,6 +202,45 @@ class AdminPage extends StatelessWidget {
                 },
               ),
               AdminActionCard(
+                title: "Manage Hotels",
+                description: "Add, edit, or delete Hotels.",
+                icon: Icons.hotel,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ManageHotelsPage(),
+                    ),
+                  );
+                },
+              ),
+              AdminActionCard(
+                title: "Manage Resturant",
+                description: "Add, edit, or delete Resturant.",
+                icon: Icons.restaurant,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ManageRestaurantsPage(),
+                    ),
+                  );
+                },
+              ),
+              AdminActionCard(
+                title: "Manage Events",
+                description: "Add, edit, or delete city-specific events.",
+                icon: Icons.event,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EventManagementPage(),
+                    ),
+                  );
+                },
+              ),
+              AdminActionCard(
                 title: "Manage Reviews",
                 description: "Moderate user reviews.",
                 icon: Icons.rate_review,
@@ -212,19 +253,7 @@ class AdminPage extends StatelessWidget {
                   );
                 },
               ),
-              AdminActionCard(
-                title: "Event Management",
-                description: "Add, edit, or delete city-specific events.",
-                icon: Icons.event,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EventManagementPage(),
-                    ),
-                  );
-                },
-              ),
+
             ],
           ),
         ),
