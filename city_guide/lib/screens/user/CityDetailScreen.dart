@@ -1,5 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'AttractionDetailScreen.dart'; // Import the AttractionDetailScreen
 
 class CityDetailScreen extends StatelessWidget {
   final String cityId;
@@ -24,7 +25,43 @@ class CityDetailScreen extends StatelessWidget {
         .collection('attractions')
         .where('cityId', isEqualTo: cityId)
         .get();
-    return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+        'imageUrl': doc['imageUrl'],
+      };
+    }).toList();
+  }
+
+  // Fetch hotels for the city
+  Future<List<Map<String, dynamic>>> fetchHotels() async {
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('hotels')
+        .where('cityId', isEqualTo: cityId)
+        .get();
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+        'imageUrl': doc['imageUrl'],
+      };
+    }).toList();
+  }
+
+  // Fetch restaurants for the city
+  Future<List<Map<String, dynamic>>> fetchRestaurants() async {
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('restaurants')
+        .where('cityId', isEqualTo: cityId)
+        .get();
+    return snapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        'name': doc['name'],
+        'imageUrl': doc['imageUrl'],
+      };
+    }).toList();
   }
 
   @override
@@ -53,73 +90,162 @@ class CityDetailScreen extends StatelessWidget {
 
           final cityDetails = snapshot.data ?? {};
           return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // City Image
-                  if (cityDetails['imageUrl'] != null)
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        image: DecorationImage(
-                          image: NetworkImage(cityDetails['imageUrl']),
-                          fit: BoxFit.cover,
-                        ),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // City Image
+                if (cityDetails['imageUrl'] != null)
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      image: DecorationImage(
+                        image: NetworkImage(cityDetails['imageUrl']),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  const SizedBox(height: 16),
-                  // City Description
-                  Text(
-                    cityDetails['description'] ?? 'No description available.',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontFamily: 'Montserrat',
-                      color: Colors.grey,
-                    ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Attractions Section
-                  const SectionTitle(title: "Popular Attractions"),
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: fetchAttractions(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text("Error: ${snapshot.error}"));
-                      }
-
-                      final attractions = snapshot.data ?? [];
-                      if (attractions.isEmpty) {
-                        return const Center(child: Text("No attractions found."));
-                      }
-
-                      return GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.8,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: attractions.length,
-                        itemBuilder: (context, index) {
-                          return AttractionCard(
-                            attractionName: attractions[index]['name'],
-                            imageUrl: attractions[index]['imageUrl'],
-                          );
-                        },
-                      );
-                    },
+                const SizedBox(height: 16),
+                // City Description
+                Text(
+                  cityDetails['description'] ?? 'No description available.',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'Montserrat',
+                    color: Colors.grey,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 24),
+                // Attractions Section
+                const SectionTitle(title: "Popular Attractions"),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: fetchAttractions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+
+                    final attractions = snapshot.data ?? [];
+                    if (attractions.isEmpty) {
+                      return const Text("No attractions found.");
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: attractions.length,
+                      itemBuilder: (context, index) {
+                        final attraction = attractions[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Navigate to the AttractionDetailScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AttractionDetailScreen(
+                                    attractionId: attraction['id'],
+                                    attractionName: attraction['name'],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: AttractionCard(
+                              attractionName: attraction['name'],
+                              imageUrl: attraction['imageUrl'],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                // Hotels Section
+                const SectionTitle(title: "Hotels"),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: fetchHotels(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+
+                    final hotels = snapshot.data ?? [];
+                    if (hotels.isEmpty) {
+                      return const Text("No hotels found.");
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: hotels.length,
+                      itemBuilder: (context, index) {
+                        final hotel = hotels[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Add navigation to hotel detail screen if needed
+                            },
+                            child: AttractionCard(
+                              attractionName: hotel['name'],
+                              imageUrl: hotel['imageUrl'],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                // Restaurants Section
+                const SectionTitle(title: "Restaurants"),
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: fetchRestaurants(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(child: Text("Error: ${snapshot.error}"));
+                    }
+
+                    final restaurants = snapshot.data ?? [];
+                    if (restaurants.isEmpty) {
+                      return const Text("No restaurants found.");
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: restaurants.length,
+                      itemBuilder: (context, index) {
+                        final restaurant = restaurants[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Add navigation to restaurant detail screen if needed
+                            },
+                            child: AttractionCard(
+                              attractionName: restaurant['name'],
+                              imageUrl: restaurant['imageUrl'],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
           );
         },
@@ -140,29 +266,25 @@ class AttractionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to attraction details (if needed)
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
         ),
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            color: Colors.black.withOpacity(0.6),
-            child: Text(
-              attractionName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+      ),
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          color: Colors.black.withOpacity(0.6),
+          child: Text(
+            attractionName,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

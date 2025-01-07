@@ -38,6 +38,7 @@ dependencies:
   firebase_auth:
   cloud_firestore:
   shared_preferences: ^2.0.15
+  flutter_spinkit: ^5.2.1
 
 dev_dependencies:
   flutter_test:

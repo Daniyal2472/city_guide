@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
+import '../screens/user/AttractionDetailScreen.dart';
 
 
 
@@ -159,53 +162,88 @@ class CityCard extends StatelessWidget {
 class PopularAttractionsWidget extends StatelessWidget {
   const PopularAttractionsWidget({super.key});
 
+  Future<List<Map<String, dynamic>>> fetchPopularAttractions() async {
+    final QuerySnapshot snapshot =
+    await FirebaseFirestore.instance.collection('attractions').get();
+
+    return snapshot.docs.map((doc) {
+      return {
+        'attractionId': doc.id, // Use document ID as attractionId
+        'attractionName': doc['name'],
+        'imageUrl': doc['imageUrl'],
+      };
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 250, // Adjust height for better visibility
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: const [
-          AttractionCard(
-            name: "Statue of Liberty",
-            imageUrl: "https://example.com/statue_of_liberty.jpg", // Replace with actual image URL
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: fetchPopularAttractions(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        final attractions = snapshot.data ?? [];
+        if (attractions.isEmpty) {
+          return const Text("No popular attractions available.");
+        }
+
+        return SizedBox(
+          height: 250, // Adjust height for better visibility
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: attractions.length,
+            itemBuilder: (context, index) {
+              final attraction = attractions[index];
+              return AttractionCard(
+                attractionName: attraction['attractionName'],
+                imageUrl: attraction['imageUrl'],
+                attractionId: attraction['attractionId'],
+              );
+            },
           ),
-          AttractionCard(
-            name: "Eiffel Tower",
-            imageUrl: "https://example.com/eiffel_tower.jpg", // Replace with actual image URL
-          ),
-          AttractionCard(
-            name: "Mount Fuji",
-            imageUrl: "https://example.com/mount_fuji.jpg", // Replace with actual image URL
-          ),
-          AttractionCard(
-            name: "Great Wall of China",
-            imageUrl: "https://example.com/great_wall_of_china.jpg", // Replace with actual image URL
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
+
 // Attraction Card
 class AttractionCard extends StatelessWidget {
-  final String name;
+  final String attractionId;
+  final String attractionName;
   final String imageUrl;
 
-  const AttractionCard({super.key, required this.name, required this.imageUrl});
+  const AttractionCard({
+    super.key,
+    required this.attractionId,
+    required this.attractionName,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to Attraction Details
+        // Navigate to the AttractionDetailScreen with the selected attraction details
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AttractionDetailScreen(
+              attractionId: attractionId,
+              attractionName: attractionName,
+            ),
+          ),
+        );
       },
       child: Container(
-        width: 220,
-        margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           image: DecorationImage(
             image: NetworkImage(imageUrl),
             fit: BoxFit.cover,
@@ -214,15 +252,13 @@ class AttractionCard extends StatelessWidget {
         child: Align(
           alignment: Alignment.bottomCenter,
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8.0),
             color: Colors.black.withOpacity(0.6),
             child: Text(
-              name,
+              attractionName,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
-                letterSpacing: 1.2,
               ),
             ),
           ),
@@ -231,6 +267,9 @@ class AttractionCard extends StatelessWidget {
     );
   }
 }
+
+
+
 
 // Explore More Widget (already added in the previous message)
 class ExploreMoreWidget extends StatelessWidget {

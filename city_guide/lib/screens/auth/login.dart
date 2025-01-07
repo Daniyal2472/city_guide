@@ -3,22 +3,39 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:city_guide/screens/auth/register.dart';
 import 'package:city_guide/screens/user/home_screen.dart'; // User Home Screen
-import 'package:city_guide/screens/admin/adminscreen.dart'; // Admin Home Screen (create this screen)
+import 'package:city_guide/screens/admin/adminscreen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart'; // Admin Home Screen (create this screen)
 
-class LoginScreen extends StatelessWidget {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+class LoginScreen extends StatefulWidget {
 
   LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailController = TextEditingController();
+
+  final TextEditingController passwordController = TextEditingController();
+
+   bool loading = false;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   void loginUser(BuildContext context) async {
+    setState(() {
+      loading = true;
+    });
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        loading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Email and password are required.")),
       );
@@ -47,6 +64,9 @@ class LoginScreen extends StatelessWidget {
 
       // Navigate based on the user's role
       if (role == 'Admin') {
+        setState(() {
+          loading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful! Welcome Admin.")),
         );
@@ -56,6 +76,9 @@ class LoginScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const AdminPage()), // Removed const
         );
       } else {
+        setState(() {
+          loading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful! Welcome User.")),
         );
@@ -66,6 +89,9 @@ class LoginScreen extends StatelessWidget {
         );
       }
     } catch (e) {
+      setState(() {
+        loading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
       );
@@ -163,7 +189,10 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   // Login Button
-                  ElevatedButton(
+                  loading ? const SpinKitChasingDots(
+                    color: Colors.white,
+                    size: 50.0,
+                  ): ElevatedButton(
                     onPressed: () => loginUser(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFDEAD6F),

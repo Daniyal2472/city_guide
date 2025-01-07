@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class AttractionDetailScreen extends StatefulWidget {
   final String attractionId;
@@ -36,7 +37,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchReviews() async {
+  Future<List<Map<String, dynamic>>> fetchReviewsWithUserDetails() async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
           .collection('reviews')
@@ -44,16 +45,32 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
           .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'review': data['review'] ?? 'No review',
-          'userId': data['userId'] ?? 'Unknown user',
-          'createdAt': (data['createdAt'] as Timestamp).toDate(),
-        };
-      }).toList();
+      final List<Map<String, dynamic>> reviews = await Future.wait(
+        querySnapshot.docs.map((doc) async {
+          final data = doc.data();
+          final String userId = data['userId'] ?? 'Unknown user';
+          final Timestamp createdAt = data['createdAt'] as Timestamp;
+
+          // Fetch user details
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+          final String userName = userDoc.exists
+              ? (userDoc.data()?['fullName'] ?? 'Anonymous')
+              : 'Anonymous';
+
+          return {
+            'review': data['review'] ?? 'No review',
+            'userName': userName,
+            'createdAt': createdAt.toDate(),
+          };
+        }).toList(),
+      );
+
+      return reviews;
     } catch (e) {
-      throw Exception("Error fetching reviews: $e");
+      throw Exception("Error fetching reviews with user details: $e");
     }
   }
 
@@ -85,8 +102,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
         const SnackBar(content: Text("Review added successfully")),
       );
 
-      // Refresh the reviews section
-      setState(() {});
+      setState(() {}); // Refresh the reviews section
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
@@ -99,7 +115,9 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.attractionName),
-        backgroundColor: const Color(0xFF6995B1),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchAttractionDetails(),
@@ -107,6 +125,8 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
+          // Handle error case
           if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
@@ -116,73 +136,82 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
             return const Center(child: Text("Attraction not found"));
           }
 
-          final String name = attraction['name'] ?? 'No name available';
           final String imageUrl = attraction['imageUrl'] ?? '';
           final String description = attraction['description'] ?? 'No description available';
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Attraction Image
-                  imageUrl.isNotEmpty
-                      ? Image.network(imageUrl)
-                      : const Placeholder(fallbackHeight: 200),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.network(
+                        imageUrl,
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            height: 200,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Text('Image not available'),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-
-                  // Attraction Name
                   Text(
-                    name,
+                    widget.attractionName,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-
-                  // Attraction Description
+                  const SizedBox(height: 16),
                   Text(
                     description,
                     style: const TextStyle(fontSize: 16),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Add Review Section
+                  const SizedBox(height: 24),
                   const Text(
-                    'Add Your Review:',
-                    style: TextStyle(fontSize: 18),
+                    'Comments',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _reviewController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Write a review',
+                    decoration: InputDecoration(
+                      hintText: 'Write a review...',
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.send),
+                        onPressed: addReview,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      fillColor: Colors.grey[100],
+                      filled: true,
                     ),
-                    maxLines: 4,
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: addReview,
-                    child: const Text('Submit Review'),
                   ),
                   const SizedBox(height: 16),
-
-                  // Display Reviews Section
-                  const Text(
-                    'Reviews:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
                   FutureBuilder<List<Map<String, dynamic>>>(
-                    future: fetchReviews(),
+                    future: fetchReviewsWithUserDetails(),
                     builder: (context, reviewsSnapshot) {
                       if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (reviewsSnapshot.hasError) {
-                        return Text("Error: ${reviewsSnapshot.error}");
+                        return Center(child: Text("Error: ${reviewsSnapshot.error}"));
                       }
 
                       final reviews = reviewsSnapshot.data ?? [];
@@ -190,22 +219,25 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                         return const Text("No reviews yet.");
                       }
 
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: reviews.length,
-                        itemBuilder: (context, index) {
-                          final review = reviews[index];
+                      return Column(
+                        children: reviews.map((review) {
                           return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
                             child: ListTile(
+                              leading: const CircleAvatar(
+                                child: Icon(Icons.person, color: Colors.white),
+                                backgroundColor: Colors.blueAccent,
+                              ),
                               title: Text(review['review']),
                               subtitle: Text(
-                                "User: ${review['userId']}\nDate: ${review['createdAt']}",
+                                "User: ${review['userName']}\nDate: ${DateFormat('yyyy-MM-dd – kk:mm').format(review['createdAt'])}",
                               ),
                             ),
                           );
-                        },
+                        }).toList(),
                       );
                     },
                   ),
