@@ -5,10 +5,18 @@ import 'package:flutter/material.dart';
 import '../../widgets/PopularAttractionsWidget.dart';
 import '../auth/login.dart';
 import 'CityDetailScreen.dart';
-import 'AttractionDetailScreen.dart'; // Import the AttractionDetailScreen
+import 'AttractionDetailScreen.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
 
   Future<Map<String, String>> fetchUserDetails() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -39,9 +47,11 @@ class HomePage extends StatelessWidget {
         title: const Text(
           'City Guide',
           style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+            fontFamily: 'Roboto', // Change this to your preferred font family
+            fontWeight: FontWeight.w600, // Adjust the font weight (you can try FontWeight.w400, w500, etc.)
+            fontSize: 24, // Adjust the font size if needed
+            letterSpacing: 1.2, // Add some letter spacing for more style
+            color: Colors.white, // Set the title text color if needed
           ),
         ),
         backgroundColor: const Color(0xFF6995B1),
@@ -68,6 +78,7 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
+
       drawer: Drawer(
         child: FutureBuilder<Map<String, String>>(
           future: fetchUserDetails(),
@@ -154,8 +165,24 @@ class HomePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionTitle(title: "Select Your City"),
+              SizedBox(height: 8),
+              TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.toLowerCase();
+                  });
+                },
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: "Search for a city...",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
               SizedBox(height: 16),
-              CitySelectionWidget(),
+              CitySelectionWidget(searchQuery: _searchQuery),
               SizedBox(height: 24),
               SectionTitle(title: "Popular Attractions"),
               SizedBox(height: 16),
@@ -190,7 +217,9 @@ class HomePage extends StatelessWidget {
 }
 
 class CitySelectionWidget extends StatelessWidget {
-  const CitySelectionWidget({super.key});
+  final String searchQuery;
+
+  const CitySelectionWidget({super.key, required this.searchQuery});
 
   Future<List<Map<String, dynamic>>> fetchCities() async {
     final QuerySnapshot snapshot =
@@ -216,23 +245,36 @@ class CitySelectionWidget extends StatelessWidget {
           return Center(child: Text("Error: ${snapshot.error}"));
         }
         final cities = snapshot.data ?? [];
+        final filteredCities = cities
+            .where((city) =>
+            city['name'].toLowerCase().contains(searchQuery.toLowerCase()))
+            .toList();
+
+        if (filteredCities.isEmpty) {
+          return const Center(
+            child: Text(
+              "No cities found.",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          );
+        }
+
         return SizedBox(
           height: 120,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: cities.map((city) {
+              children: filteredCities.map((city) {
                 return Padding(
                   padding: const EdgeInsets.only(right: 16.0),
                   child: GestureDetector(
                     onTap: () {
-                      // Pass the correct cityId and cityName to CityDetailScreen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => CityDetailScreen(
                             cityName: city['name'],
-                            cityId: city['id'], // Pass the actual cityId here
+                            cityId: city['id'],
                           ),
                         ),
                       );
@@ -251,6 +293,7 @@ class CitySelectionWidget extends StatelessWidget {
     );
   }
 }
+
 
 
 class CityCard extends StatelessWidget {
