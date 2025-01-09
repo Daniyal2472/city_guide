@@ -15,14 +15,12 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _reviewTitleController = TextEditingController();
-  final TextEditingController _reviewContentController =
-  TextEditingController();
+  final TextEditingController _reviewContentController = TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
 
   Future<void> _getReviews() async {
-    final QuerySnapshot reviewSnapshot =
-    await _firestore.collection('reviews').get();
+    final QuerySnapshot reviewSnapshot = await _firestore.collection('reviews').get();
     setState(() {
       reviews = reviewSnapshot.docs.map((doc) {
         return {
@@ -274,8 +272,7 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
                 backgroundColor: const Color(0xFF6995B1),
-                padding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
                 textStyle: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
@@ -290,3 +287,5 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
     );
   }
 }
+
+// This code defines a Flutter page for managing reviews, including adding, updating, and deleting reviews from a Firestore database. The page displays a list of reviews and provides a form for adding or editing reviews.

@@ -328,3 +328,5 @@ class _ManageRestaurantsPageState extends State<ManageRestaurantsPage> {
     );
   }
 }
+
+// This code defines a Flutter page for managing restaurants, including adding, updating, and deleting restaurants from a Firestore database. It also includes a form for inputting restaurant details and selecting a city.

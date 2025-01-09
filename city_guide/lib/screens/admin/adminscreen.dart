@@ -28,21 +28,17 @@ class MyApp extends StatelessWidget {
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
 
-  // Move fetchCounts here
   Future<Map<String, int>> fetchCounts() async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Fetch count of cities
     final int citiesCount = await firestore.collection('cities').get().then((snapshot) => snapshot.size);
 
-    // Fetch count of attractions (including hotels and restaurants)
     final int attractionsCount = await Future.wait([
       firestore.collection('attractions').get().then((snapshot) => snapshot.size),
       firestore.collection('hotels').get().then((snapshot) => snapshot.size),
       firestore.collection('restaurants').get().then((snapshot) => snapshot.size),
     ]).then((counts) => counts.reduce((a, b) => a + b));
 
-    // Fetch count of users
     final int usersCount = await firestore.collection('users').get().then((snapshot) => snapshot.size);
 
     return {
@@ -310,7 +306,7 @@ class DashboardCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.4, // Use dynamic width
+        width: MediaQuery.of(context).size.width * 0.4,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(

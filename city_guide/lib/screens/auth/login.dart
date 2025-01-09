@@ -2,12 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:city_guide/screens/auth/register.dart';
-import 'package:city_guide/screens/user/home_screen.dart'; // User Home Screen
+import 'package:city_guide/screens/user/home_screen.dart';
 import 'package:city_guide/screens/admin/adminscreen.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart'; // Admin Home Screen (create this screen)
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class LoginScreen extends StatefulWidget {
-
   LoginScreen({super.key});
 
   @override
@@ -16,13 +15,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
-
   final TextEditingController passwordController = TextEditingController();
-
-   bool loading = false;
-
+  bool loading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void loginUser(BuildContext context) async {
@@ -43,13 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      // Authenticate user with Firebase
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Get the user's role from Firestore
       DocumentSnapshot userDoc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
 
       if (!userDoc.exists) {
@@ -59,10 +52,8 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // Get the role from the Firestore document
       String role = userDoc['role'] ?? 'User';
 
-      // Navigate based on the user's role
       if (role == 'Admin') {
         setState(() {
           loading = false;
@@ -70,10 +61,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful! Welcome Admin.")),
         );
-        // Navigate to the Admin home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AdminPage()), // Removed const
+          MaterialPageRoute(builder: (context) => const AdminPage()),
         );
       } else {
         setState(() {
@@ -82,10 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Login successful! Welcome User.")),
         );
-        // Navigate to the User home screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()), // Removed const
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       }
     } catch (e) {
@@ -117,7 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // App Icon or Logo
                   const CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.white,
@@ -128,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // App Title
                   const Text(
                     "Welcome Back!",
                     style: TextStyle(
@@ -155,15 +142,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Email Field
                   TextField(
                     controller: emailController,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
                       hintText: "Email",
-                      prefixIcon:
-                      const Icon(Icons.email, color: Color(0xFF6995B1)),
+                      prefixIcon: const Icon(Icons.email, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -171,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Password Field
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -179,8 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       filled: true,
                       fillColor: Colors.white,
                       hintText: "Password",
-                      prefixIcon:
-                      const Icon(Icons.lock, color: Color(0xFF6995B1)),
+                      prefixIcon: const Icon(Icons.lock, color: Color(0xFF6995B1)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -188,39 +171,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Login Button
-                  loading ? const SpinKitChasingDots(
-                    color: Colors.white,
-                    size: 50.0,
-                  ): ElevatedButton(
-                    onPressed: () => loginUser(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDEAD6F),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text(
-                      "Log In",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                  ),
+                  loading
+                      ? const SpinKitChasingDots(
+                          color: Colors.white,
+                          size: 50.0,
+                        )
+                      : ElevatedButton(
+                          onPressed: () => loginUser(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFDEAD6F),
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 5,
+                          ),
+                          child: const Text(
+                            "Log In",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontFamily: 'Montserrat',
+                            ),
+                          ),
+                        ),
                   const SizedBox(height: 16),
-                  // Forgot Password
                   GestureDetector(
                     onTap: () {
-                      // Navigate to Forgot Password Page
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                "Forgot Password functionality coming soon!")),
+                        const SnackBar(content: Text("Forgot Password functionality coming soon!")),
                       );
                     },
                     child: const Text(
@@ -234,7 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Register Navigation
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -250,8 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
                           );
                         },
                         child: const Text(
@@ -275,3 +253,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+// This code defines a login screen for a Flutter app using Firebase for authentication and Firestore for user data storage. 
+// It includes email and password fields, a login button, and navigation to different screens based on user roles (Admin or User).

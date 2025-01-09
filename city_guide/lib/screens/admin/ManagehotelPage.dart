@@ -21,7 +21,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     }).toList();
   }
 
-
   List<Map<String, dynamic>> hotels = [];
   List<Map<String, dynamic>> cities = [];
 
@@ -39,7 +38,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     _getHotels();
   }
 
-  // Fetch cities from Firestore
   Future<void> _getCities() async {
     final QuerySnapshot citySnapshot = await _firestore.collection('cities').get();
     setState(() {
@@ -52,7 +50,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     });
   }
 
-  // Fetch hotels from Firestore
   Future<void> _getHotels() async {
     final QuerySnapshot hotelSnapshot = await _firestore.collection('hotels').get();
     setState(() {
@@ -68,7 +65,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     });
   }
 
-  // Add a new hotel
   void addHotel() async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('hotels').add({
@@ -87,7 +83,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     }
   }
 
-  // Update an existing hotel
   void updateHotel(String hotelId) async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('hotels').doc(hotelId).update({
@@ -106,7 +101,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     }
   }
 
-  // Delete a hotel
   void deleteHotel(String hotelId) async {
     await _firestore.collection('hotels').doc(hotelId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -115,7 +109,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     _getHotels();
   }
 
-  // Clear form fields
   void _clearForm() {
     _nameController.clear();
     _imageUrlController.clear();
@@ -125,7 +118,6 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     });
   }
 
-  // Show the add/edit hotel form
   void showHotelForm({
     String? name,
     String? imageUrl,
@@ -333,3 +325,5 @@ class _ManageHotelsPageState extends State<ManageHotelsPage> {
     );
   }
 }
+
+// This code defines a Flutter page for managing hotels, including fetching, adding, updating, and deleting hotels from Firestore. It also includes a form for adding/editing hotels with validation and a dropdown for selecting a city.

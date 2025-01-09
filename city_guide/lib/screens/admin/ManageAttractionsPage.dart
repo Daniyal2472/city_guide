@@ -10,23 +10,17 @@ class ManageAttractionsPage extends StatefulWidget {
 
 class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  // Change to dynamic to support Firestore data structure
   List<Map<String, dynamic>> attractions = [];
   List<Map<String, dynamic>> cities = [];
-
-  // Controllers for form inputs
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-
   String? _selectedCityId;
 
-  // Fetch cities from Firestore
   Future<void> _getCities() async {
     final QuerySnapshot citySnapshot =
-    await _firestore.collection('cities').get();
+        await _firestore.collection('cities').get();
     setState(() {
       cities = citySnapshot.docs.map((doc) {
         return {
@@ -37,10 +31,9 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
     });
   }
 
-  // Fetch attractions from Firestore
   Future<void> _getAttractions() async {
     final QuerySnapshot attractionSnapshot =
-    await _firestore.collection('attractions').get();
+        await _firestore.collection('attractions').get();
     setState(() {
       attractions = attractionSnapshot.docs.map((doc) {
         return {
@@ -54,67 +47,68 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
     });
   }
 
-  // Function to delete an attraction
   void deleteAttraction(String attractionId) async {
     await _firestore.collection('attractions').doc(attractionId).delete();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Attraction deleted successfully")),
     );
-    _getAttractions(); // Refresh the attractions list
+    _getAttractions();
   }
 
-  // Function to add a new attraction
   void addAttraction() async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('attractions').add({
         'name': _nameController.text,
         'imageUrl': _imageUrlController.text,
         'description': _descriptionController.text,
-        'cityId': _selectedCityId, // Associate attraction with the selected city
+        'cityId': _selectedCityId,
       });
 
       _nameController.clear();
       _imageUrlController.clear();
       _descriptionController.clear();
       setState(() {
-        _selectedCityId = null; // Reset city dropdown
+        _selectedCityId = null;
       });
 
-      Navigator.pop(context); // Close the dialog
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Attraction added successfully")),
       );
-      _getAttractions(); // Refresh the attractions list
+      _getAttractions();
     }
   }
 
-  // Function to update an existing attraction
   void updateAttraction(String attractionId) async {
     if (_formKey.currentState?.validate() ?? false) {
       await _firestore.collection('attractions').doc(attractionId).update({
         'name': _nameController.text,
         'imageUrl': _imageUrlController.text,
         'description': _descriptionController.text,
-        'cityId': _selectedCityId, // Update associated city
+        'cityId': _selectedCityId,
       });
 
       _nameController.clear();
       _imageUrlController.clear();
       _descriptionController.clear();
       setState(() {
-        _selectedCityId = null; // Reset city dropdown
+        _selectedCityId = null;
       });
 
-      Navigator.pop(context); // Close the dialog
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Attraction updated successfully")),
       );
-      _getAttractions(); // Refresh the attractions list
+      _getAttractions();
     }
   }
 
-  // Function to show the add/edit attraction form
-  void showAttractionForm({String? name, String? imageUrl, String? description, String? cityId, String? attractionId}) {
+  void showAttractionForm(
+      {String? name,
+      String? imageUrl,
+      String? description,
+      String? cityId,
+      String? attractionId}) {
     if (attractionId != null) {
       _nameController.text = name!;
       _imageUrlController.text = imageUrl!;
@@ -130,7 +124,8 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(attractionId != null ? 'Edit Attraction' : 'Add New Attraction'),
+        title: Text(
+            attractionId != null ? 'Edit Attraction' : 'Add New Attraction'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -219,7 +214,7 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close the dialog without saving
+              Navigator.pop(context);
             },
             child: const Text('Cancel'),
           ),
@@ -232,9 +227,10 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6995B1), // Button color
+              backgroundColor: const Color(0xFF6995B1),
             ),
-            child: Text(attractionId != null ? 'Update Attraction' : 'Add Attraction'),
+            child: Text(
+                attractionId != null ? 'Update Attraction' : 'Add Attraction'),
           ),
         ],
       ),
@@ -244,8 +240,8 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
   @override
   void initState() {
     super.initState();
-    _getCities(); // Fetch cities when the page loads
-    _getAttractions(); // Fetch attractions when the page loads
+    _getCities();
+    _getAttractions();
   }
 
   @override
@@ -257,7 +253,7 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous page
+            Navigator.pop(context);
           },
         ),
       ),
@@ -265,7 +261,6 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // List of attractions
             Expanded(
               child: ListView.builder(
                 itemCount: attractions.length,
@@ -301,7 +296,8 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteAttraction(attractions[index]["id"]!),
+                            onPressed: () =>
+                                deleteAttraction(attractions[index]["id"]!),
                           ),
                         ],
                       ),
@@ -310,16 +306,17 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
                 },
               ),
             ),
-            // Add Attraction Button
             ElevatedButton(
               onPressed: () => showAttractionForm(),
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                backgroundColor: const Color(0xFF6995B1), // Button color
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                backgroundColor: const Color(0xFF6995B1),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30), // Rounded corners
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
               child: const Text("Add Attraction"),
@@ -330,4 +327,3 @@ class _ManageAttractionsPageState extends State<ManageAttractionsPage> {
     );
   }
 }
-

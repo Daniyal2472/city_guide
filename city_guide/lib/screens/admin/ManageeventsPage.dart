@@ -365,3 +365,5 @@ class _ManageEventsPageState extends State<ManageEventsPage> {
     );
   }
 }
+
+// This code defines a Flutter app screen for managing events. It includes functionalities to add, update, and delete events from a Firestore database. The screen displays a list of events and allows the user to add new events or edit existing ones through a form. The form includes fields for event name, image URL, description, event date, and city selection. The code also handles form validation and displays appropriate messages upon successful operations.

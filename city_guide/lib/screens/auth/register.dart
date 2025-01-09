@@ -15,7 +15,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   bool loading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -53,19 +54,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     try {
-      // Create user in Firebase Authentication
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Save additional user data in Firestore with 'role' set to 'User' by default
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'fullName': fullName,
         'email': email,
         'uid': userCredential.user!.uid,
-        'role': 'User', // Default role set to 'User'
+        'role': 'User',
       });
       setState(() {
         loading = false;
@@ -74,7 +73,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SnackBar(content: Text("Registration successful!")),
       );
 
-      // Navigate to LoginScreen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -190,27 +188,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  loading ? const SpinKitChasingDots(
-                    color: Colors.white,
-                    size: 50.0,
-                  ): ElevatedButton(
-                    onPressed: registerUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFDEAD6F),
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child:const Text(
-                      "Sign Up",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  loading
+                      ? const SpinKitChasingDots(
+                          color: Colors.white,
+                          size: 50.0,
+                        )
+                      : ElevatedButton(
+                          onPressed: registerUser,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFDEAD6F),
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "Sign Up",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                   const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -248,3 +248,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
+
+// This code defines a registration screen for a Flutter app using Firebase Authentication and Firestore.
+// It includes input fields for full name, email, password, and confirm password.
+// The `registerUser` function handles user registration, including validation and error handling.
+// Upon successful registration, the user is navigated to the login screen.
