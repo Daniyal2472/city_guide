@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 
-class AttractionDetailScreen extends StatefulWidget {
-  final String attractionId;
-  final String attractionName;
+class HotelDetailScreen extends StatefulWidget {
+  final String hotelId;
+  final String hotelName;
 
-  const AttractionDetailScreen({
+  const HotelDetailScreen({
     super.key,
-    required this.attractionId,
-    required this.attractionName,
+    required this.hotelId,
+    required this.hotelName,
   });
 
   @override
-  State<AttractionDetailScreen> createState() => _AttractionDetailScreenState();
+  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
 }
 
-class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
+class _HotelDetailScreenState extends State<HotelDetailScreen> {
   final TextEditingController _reviewController = TextEditingController();
   double _currentUserRating = 0.0;
 
@@ -33,14 +33,13 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
       final currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('ratings')
-            .doc('${widget.attractionId}_${currentUser.uid}')
+            .collection('hotelRatings')
+            .doc('${widget.hotelId}_${currentUser.uid}')
             .get();
 
         if (doc.exists) {
           setState(() {
             _currentUserRating = doc.data()?['rating']?.toDouble() ?? 0.0;
-            print("rating taken");
           });
         }
       }
@@ -49,30 +48,28 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> fetchAttractionDetails() async {
-    print(widget.attractionId);
+  Future<Map<String, dynamic>> fetchHotelDetails() async {
     try {
       final doc = await FirebaseFirestore.instance
-          .collection('attractions')
-          .doc(widget.attractionId)
+          .collection('hotels')
+          .doc(widget.hotelId)
           .get();
 
       if (doc.exists) {
-        print("attractions taken");
         return doc.data() as Map<String, dynamic>;
       } else {
-        throw Exception("Attraction not found");
+        throw Exception("Hotel not found");
       }
     } catch (e) {
-      throw Exception("Error fetching attraction details: $e");
+      throw Exception("Error fetching hotel details: $e");
     }
   }
 
   Future<List<Map<String, dynamic>>> fetchReviewsWithUserDetails() async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
-          .collection('reviews')
-          .where('attractionId', isEqualTo: widget.attractionId)
+          .collection('hotelReviews')
+          .where('hotelId', isEqualTo: widget.hotelId)
           .orderBy('createdAt', descending: true)
           .get();
 
@@ -82,7 +79,6 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
           final String userId = data['userId'] ?? 'Unknown user';
           final Timestamp createdAt = data['createdAt'] as Timestamp;
 
-          // Fetch user details
           final userDoc = await FirebaseFirestore.instance
               .collection('users')
               .doc(userId)
@@ -104,30 +100,6 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     }
   }
 
-  Future<double> fetchAverageRating() async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('ratings')
-          .where('attractionId', isEqualTo: widget.attractionId)
-          .get();
-
-      if (querySnapshot.docs.isEmpty) return 0.0;
-
-      double totalRating = 0.0;
-      int count = 0;
-
-      for (var doc in querySnapshot.docs) {
-        final data = doc.data();
-        totalRating += data['rating'] as double;
-        count++;
-      }
-
-      return totalRating / count;
-    } catch (e) {
-      throw Exception("Error fetching average rating: $e");
-    }
-  }
-
   Future<void> addReview() async {
     final reviewText = _reviewController.text.trim();
     if (reviewText.isEmpty) {
@@ -144,8 +116,8 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
         throw Exception("User not logged in");
       }
 
-      await FirebaseFirestore.instance.collection('reviews').add({
-        'attractionId': widget.attractionId,
+      await FirebaseFirestore.instance.collection('hotelReviews').add({
+        'hotelId': widget.hotelId,
         'userId': currentUser.uid,
         'review': reviewText,
         'createdAt': Timestamp.now(),
@@ -164,49 +136,17 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
     }
   }
 
-  Future<void> submitRating(double rating) async {
-    try {
-      final currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser == null) {
-        throw Exception("User not logged in");
-      }
-
-      await FirebaseFirestore.instance
-          .collection('ratings')
-          .doc('${widget.attractionId}_${currentUser.uid}')
-          .set({
-        'attractionId': widget.attractionId,
-        'userId': currentUser.uid,
-        'rating': rating,
-        'createdAt': Timestamp.now(),
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Rating submitted successfully")),
-      );
-
-      setState(() {
-        _currentUserRating = rating;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.attractionName),
+        title: Text(widget.hotelName),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchAttractionDetails(),
+        future: fetchHotelDetails(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -216,13 +156,13 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
 
-          final attraction = snapshot.data;
-          if (attraction == null) {
-            return const Center(child: Text("Attraction not found"));
+          final hotel = snapshot.data;
+          if (hotel == null) {
+            return const Center(child: Text("Hotel not found"));
           }
 
-          final String imageUrl = attraction['imageUrl'] ?? '';
-          final String description = attraction['description'] ?? 'No description available';
+          final String imageUrl = hotel['imageUrl'] ?? '';
+          final String description = hotel['description'] ?? 'No description available';
 
           return SingleChildScrollView(
             child: Padding(
@@ -253,7 +193,7 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    widget.attractionName,
+                    widget.hotelName,
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -263,54 +203,6 @@ class _AttractionDetailScreenState extends State<AttractionDetailScreen> {
                   Text(
                     description,
                     style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                  FutureBuilder<double>(
-                    future: fetchAverageRating(),
-                    builder: (context, ratingSnapshot) {
-                      if (ratingSnapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (ratingSnapshot.hasError) {
-                        return Text("Error: ${ratingSnapshot.error}");
-                      }
-
-                      final averageRating = ratingSnapshot.data ?? 0.0;
-                      return Row(
-                        children: [
-                          const Text(
-                            "Average Rating:",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            averageRating.toStringAsFixed(1),
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.star, color: Colors.amber),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  RatingBar.builder(
-                    initialRating: _currentUserRating,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    itemBuilder: (context, _) => const Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                    onRatingUpdate: (rating) {
-                      submitRating(rating);
-                    },
                   ),
                   const SizedBox(height: 16),
                   FutureBuilder<List<Map<String, dynamic>>>(
