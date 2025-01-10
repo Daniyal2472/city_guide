@@ -1,11 +1,12 @@
+import 'package:city_guide/widgets/PopularAttractionsWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/PopularAttractionsWidget.dart';
-import '../auth/login.dart';
+import 'UserProfileScreen.dart';
 import 'CityDetailScreen.dart';
 import 'AttractionDetailScreen.dart';
+import '../auth/login.dart'; // Import the Login Screen
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -40,6 +41,20 @@ class _HomePageState extends State<HomePage> {
     };
   }
 
+  Future<void> logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logout failed: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,38 +62,27 @@ class _HomePageState extends State<HomePage> {
         title: const Text(
           'City Guide',
           style: TextStyle(
-            fontFamily: 'Roboto', // Change this to your preferred font family
-            fontWeight: FontWeight.w600, // Adjust the font weight (you can try FontWeight.w400, w500, etc.)
-            fontSize: 24, // Adjust the font size if needed
-            letterSpacing: 1.2, // Add some letter spacing for more style
-            color: Colors.white, // Set the title text color if needed
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w600,
+            fontSize: 24,
+            letterSpacing: 1.2,
+            color: Colors.white,
           ),
         ),
         backgroundColor: const Color(0xFF6995B1),
         actions: [
-          PopupMenuButton(
+          IconButton(
             icon: const Icon(Icons.account_circle, size: 28),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 10),
-                    Text('Logout'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              if (value == 'logout') {
-                logout(context);
-              }
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const UserProfileScreen()),
+              );
             },
           ),
         ],
       ),
-
       drawer: Drawer(
         child: FutureBuilder<Map<String, String>>(
           future: fetchUserDetails(),
@@ -90,7 +94,8 @@ class _HomePageState extends State<HomePage> {
               return Center(child: Text("Error: ${snapshot.error}"));
             }
 
-            final userDetails = snapshot.data ?? {'name': 'Guest', 'email': 'No email provided'};
+            final userDetails = snapshot.data ??
+                {'name': 'Guest', 'email': 'No email provided'};
 
             return ListView(
               padding: EdgeInsets.zero,
@@ -134,13 +139,6 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.map),
-                  title: const Text('Map'),
-                  onTap: () {
-                    // Navigate to Map
-                  },
-                ),
-                ListTile(
                   leading: const Icon(Icons.settings),
                   title: const Text('Settings'),
                   onTap: () {
@@ -150,8 +148,11 @@ class _HomePageState extends State<HomePage> {
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                  onTap: () => logout(context),
+                  title:
+                  const Text('Logout', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    logout(context);
+                  },
                 ),
               ],
             );
@@ -160,12 +161,15 @@ class _HomePageState extends State<HomePage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SectionTitle(title: "Select Your City"),
-              SizedBox(height: 8),
+              const Text(
+                "Select Your City",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _searchController,
                 onChanged: (value) {
@@ -181,36 +185,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               CitySelectionWidget(searchQuery: _searchQuery),
-              SizedBox(height: 24),
-              SectionTitle(title: "Popular Attractions"),
-              SizedBox(height: 16),
-              PopularAttractionsWidget(),
+              const SizedBox(height: 24),
+              const Text(
+                "Popular Attractions",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const PopularAttractionsWidget(),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: "Map",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: "Settings",
-          ),
-        ],
-        selectedItemColor: const Color(0xFF6995B1),
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          // Handle navigation
-        },
       ),
     );
   }
@@ -244,6 +230,7 @@ class CitySelectionWidget extends StatelessWidget {
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         }
+
         final cities = snapshot.data ?? [];
         final filteredCities = cities
             .where((city) =>
@@ -261,40 +248,33 @@ class CitySelectionWidget extends StatelessWidget {
 
         return SizedBox(
           height: 120,
-          child: SingleChildScrollView(
+          child: ListView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              children: filteredCities.map((city) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CityDetailScreen(
-                            cityName: city['name'],
-                            cityId: city['id'],
-                          ),
-                        ),
-                      );
-                    },
-                    child: CityCard(
-                      cityName: city['name'],
-                      imageUrl: city['imageUrl'],
+            children: filteredCities.map((city) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CityDetailScreen(
+                        cityId: city['id'],
+                        cityName: city['name'],
+                      ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
+                  );
+                },
+                child: CityCard(
+                  cityName: city['name'],
+                  imageUrl: city['imageUrl'],
+                ),
+              );
+            }).toList(),
           ),
         );
       },
     );
   }
 }
-
-
 
 class CityCard extends StatelessWidget {
   final String cityName;
@@ -306,6 +286,7 @@ class CityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 140,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         image: DecorationImage(
@@ -316,10 +297,10 @@ class CityCard extends StatelessWidget {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: Container(
+          padding: const EdgeInsets.all(8),
           color: Colors.black.withOpacity(0.6),
           child: Text(
             cityName,
-            textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -357,102 +338,51 @@ class PopularAttractionsWidget extends StatelessWidget {
         if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         }
+
         final attractions = snapshot.data ?? [];
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: attractions.map((attraction) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: GestureDetector(
-                onTap: () {
-                  // Navigate to the Attraction Detail Screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AttractionDetailScreen(
-                        attractionId: attraction['id'], // Pass the attractionId here
-                        attractionName: attraction['name'],
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AttractionDetailScreen(
+                      attractionId: attraction['id'],
+                      attractionName: attraction['name'],
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    image: NetworkImage(attraction['imageUrl']),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.black.withOpacity(0.6),
+                    child: Text(
+                      attraction['name'],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  );
-                },
-                child: AttractionCard(
-                  attractionName: attraction['name'],
-                  imageUrl: attraction['imageUrl'],
+                  ),
                 ),
               ),
             );
           }).toList(),
         );
       },
-    );
-  }
-}
-
-class AttractionCard extends StatelessWidget {
-  final String attractionName;
-  final String imageUrl;
-
-  const AttractionCard({super.key, required this.attractionName, required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 200, // Adjust the height according to your design
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          color: Colors.black.withOpacity(0.6),
-          child: Text(
-            attractionName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SectionTitle extends StatelessWidget {
-  final String title;
-
-  const SectionTitle({super.key, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'Montserrat',
-      ),
-    );
-  }
-}
-
-// Logout function
-void logout(BuildContext context) async {
-  try {
-    await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Logout failed: ${e.toString()}")),
     );
   }
 }

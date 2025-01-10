@@ -15,12 +15,14 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _reviewTitleController = TextEditingController();
-  final TextEditingController _reviewContentController = TextEditingController();
+  final TextEditingController _reviewContentController =
+      TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _userNameController = TextEditingController();
 
   Future<void> _getReviews() async {
-    final QuerySnapshot reviewSnapshot = await _firestore.collection('reviews').get();
+    final QuerySnapshot reviewSnapshot =
+        await _firestore.collection('reviews').get();
     setState(() {
       reviews = reviewSnapshot.docs.map((doc) {
         return {
@@ -88,10 +90,10 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
 
   void showReviewForm(
       {String? reviewTitle,
-        String? reviewContent,
-        String? rating,
-        String? userName,
-        String? reviewId}) {
+      String? reviewContent,
+      String? rating,
+      String? userName,
+      String? reviewId}) {
     if (reviewId != null) {
       _reviewTitleController.text = reviewTitle!;
       _reviewContentController.text = reviewContent!;
@@ -272,9 +274,10 @@ class _ManageReviewsPageState extends State<ManageReviewsPage> {
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
                 backgroundColor: const Color(0xFF6995B1),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                textStyle: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                textStyle:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),

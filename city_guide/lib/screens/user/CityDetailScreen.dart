@@ -14,7 +14,7 @@ class CityDetailScreen extends StatelessWidget {
 
   Future<Map<String, dynamic>> fetchCityDetails() async {
     final DocumentSnapshot cityDoc =
-    await FirebaseFirestore.instance.collection('cities').doc(cityId).get();
+        await FirebaseFirestore.instance.collection('cities').doc(cityId).get();
     return cityDoc.data() as Map<String, dynamic>? ?? {};
   }
 
@@ -136,10 +136,10 @@ class CityDetailScreen extends StatelessWidget {
   }
 
   Widget _buildListSection(
-      Future<List<Map<String, dynamic>>> fetchData,
-      String emptyMessage,
-      BuildContext context,
-      ) {
+    Future<List<Map<String, dynamic>>> fetchData,
+    String emptyMessage,
+    BuildContext context,
+  ) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: fetchData,
       builder: (context, snapshot) {

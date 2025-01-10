@@ -229,8 +229,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                             ),
                             child: ListTile(
                               leading: const CircleAvatar(
-                                child: Icon(Icons.person, color: Colors.white),
                                 backgroundColor: Colors.blueAccent,
+                                child: Icon(Icons.person, color: Colors.white),
                               ),
                               title: Text(review['review']),
                               subtitle: Text(
